@@ -1,0 +1,49 @@
+### GET all habits
+GET http://localhost:3000/api/habits
+Accept: application/json
+
+###
+
+### POST a new habit
+POST http://localhost:3000/api/habits
+Content-Type: application/json
+
+{
+  "title": "Drink water"
+}
+
+### GET all tasks
+GET http://localhost:3000/api/tasks
+Accept: application/json
+
+###
+
+### POST a new task
+POST http://localhost:3000/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Check in with myself",
+  "dueDate": "2025-05-07T10:00:00Z",
+  "remindAt": "2025-05-06T18:00:00Z"
+}
+
+
+
+### GET all moods
+GET http://localhost:3000/api/moods
+Accept: application/json
+
+###
+
+### POST a new mood
+POST http://localhost:3000/api/moods
+Content-Type: application/json
+
+{
+  "mood": "calm",
+  "note": "Meditated and journaled today."
+}
+
+### GET motivational quote
+GET http://localhost:3000/api/quotes
