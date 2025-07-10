@@ -33,5 +33,5 @@ app.use("/api/moods", moodsRouter);
 app.use("/api/quotes", quotesRouter);
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });

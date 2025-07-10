@@ -1,4 +1,5 @@
-import TaskScreen from "../../screens/TaskScreen";
+import HomeScreen from "../../screens/HomeScreen";
+
 export default function Index() {
-    return <TaskScreen />;
+    return <HomeScreen />;
 }

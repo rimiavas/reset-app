@@ -1,4 +1,5 @@
-import MoodScreen from "../../screens/MoodScreen";
+import MoodTrackerScreen from "../../screens/MoodTrackerScreen";
+
 export default function Mood() {
-    return <MoodScreen />;
+    return <MoodTrackerScreen />;
 }

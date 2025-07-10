@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
+import { API_URL } from "../constants/constants";
 
 export default function TaskScreen() {
     const [tasks, setTasks] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:3000/api/tasks") // Replace with your IP if needed
+        fetch(`${API_URL}/api/tasks`)
             .then((res) => res.json())
             .then((data) => setTasks(data))
             .catch((err) => console.error("Error fetching tasks:", err));

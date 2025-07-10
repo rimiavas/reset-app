@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
+import { API_URL } from "../constants/constants";
 
 export default function HabitScreen() {
     const [habits, setHabits] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:3000/api/habits")
+        fetch(`${API_URL}/api/habits`)
             .then((res) => res.json())
             .then((data) => setHabits(data))
             .catch((err) => console.error("Error fetching habits:", err));
