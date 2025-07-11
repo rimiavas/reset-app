@@ -8,10 +8,9 @@ import {
     ScrollView,
     RefreshControl,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
-import { useRouter } from "expo-router";
 
 export default function CalendarScreen() {
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -27,12 +26,13 @@ export default function CalendarScreen() {
                 .then((res) => res.json())
                 .then(setTasks)
                 .catch((err) => console.error("Error fetching tasks:", err)),
+
             fetch(`${API_URL}/api/habits`)
                 .then((res) => res.json())
                 .then(setHabits)
                 .catch((err) => console.error("Error fetching habits:", err)),
         ]);
-    });
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -53,20 +53,21 @@ export default function CalendarScreen() {
         return dates;
     };
 
-    const filteredTasks = tasks.filter((task) => isSameDay(new Date(task.dueDate), selectedDate));
+    const filteredTasks = Array.isArray(tasks)
+        ? tasks.filter((task) => isSameDay(new Date(task.dueDate), selectedDate))
+        : [];
 
-    const filteredHabits = habits; // Future: you can filter habits by date
+    const filteredHabits = Array.isArray(habits) ? habits : [];
 
     return (
         <View style={styles.container}>
-            {/* Fixed Header: Date Scroll + Tabs */}
-            <View>
-                {/* Date Scroll */}
+            {/* Top Section: Date + Tabs */}
+            <View style={styles.topSection}>
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     style={styles.dateRow}
-                    contentContainerStyle={{ paddingRight: 16 }}>
+                    contentContainerStyle={styles.dateRowContent}>
                     {getDates().map((date, index) => (
                         <TouchableOpacity
                             key={index}
@@ -75,37 +76,45 @@ export default function CalendarScreen() {
                                 isSameDay(date, selectedDate) && styles.activeDate,
                             ]}
                             onPress={() => setSelectedDate(date)}>
-                            <Text style={styles.dateText}>{format(date, "dd MMM")}</Text>
+                            <Text
+                                style={[
+                                    styles.dateText,
+                                    isSameDay(date, selectedDate) && styles.activeDateText,
+                                ]}>
+                                {format(date, "dd MMM")}
+                            </Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
 
-                {/* View Toggle Tabs */}
                 <View style={styles.tabRow}>
                     <TouchableOpacity
                         style={[styles.tab, view === "tasks" && styles.activeTab]}
                         onPress={() => setView("tasks")}>
                         <Text style={[styles.tabText, view === "tasks" && styles.activeTabText]}>
-                            Upcoming Tasks
+                            Tasks
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.tab, view === "habits" && styles.activeTab]}
                         onPress={() => setView("habits")}>
-                        <Text style={styles.tabText}>Habits</Text>
+                        <Text style={[styles.tabText, view === "habits" && styles.activeTabText]}>
+                            Habits
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
-            {/* Scrollable Task/Habit List */}
+            {/* List Section */}
             <FlatList
-                style={{ flex: 1 }}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                style={styles.list}
                 data={view === "tasks" ? filteredTasks : filteredHabits}
                 keyExtractor={(item) => item._id}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
                 }
+                contentContainerStyle={{ paddingBottom: 100 }}
+                ListEmptyComponent={<Text style={styles.empty}>No {view} for this date.</Text>}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
                         <Text style={styles.title}>{item.title}</Text>
@@ -118,7 +127,7 @@ export default function CalendarScreen() {
                 )}
             />
 
-            {/* Floating Action Button */}
+            {/* FAB */}
             <TouchableOpacity style={styles.fab} onPress={() => router.push("/create-entry")}>
                 <Text style={styles.fabText}>＋</Text>
             </TouchableOpacity>
@@ -128,23 +137,45 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: 80,
-        paddingHorizontal: 20,
         flex: 1,
         backgroundColor: "#f9fafb",
+        paddingTop: 80,
+        paddingHorizontal: 16,
     },
-    quote: {
-        fontSize: 20,
-        fontStyle: "italic",
-        color: "#374151",
-        marginBottom: 28,
-        lineHeight: 28,
-        textAlign: "center",
+    topSection: {
+        marginBottom: 12,
+    },
+    dateRow: {
+        flexDirection: "row",
+        marginBottom: 8,
+        height: 40,
+    },
+    dateRowContent: {
+        paddingHorizontal: 4,
+    },
+    dateButton: {
+        width: 72,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#e5e7eb",
+        marginRight: 8,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    activeDate: {
+        backgroundColor: "#111827",
+    },
+    dateText: {
+        fontSize: 14,
+        fontWeight: "500",
+        color: "#111827",
+    },
+    activeDateText: {
+        color: "#ffffff",
     },
     tabRow: {
         flexDirection: "row",
         justifyContent: "center",
-        marginBottom: 16,
     },
     tab: {
         paddingVertical: 10,
@@ -157,22 +188,26 @@ const styles = StyleSheet.create({
         backgroundColor: "#111827",
     },
     tabText: {
-        color: "#111827",
+        fontSize: 14,
         fontWeight: "600",
+        color: "#111827",
     },
     activeTabText: {
         color: "#ffffff",
+    },
+    list: {
+        flex: 1,
     },
     card: {
         backgroundColor: "#ffffff",
         padding: 16,
         borderRadius: 12,
         marginBottom: 12,
-        elevation: 2,
+        elevation: 1,
         shadowColor: "#000",
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.06,
         shadowOffset: { width: 0, height: 1 },
-        shadowRadius: 4,
+        shadowRadius: 3,
     },
     title: {
         fontSize: 16,
@@ -183,5 +218,28 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#6b7280",
         marginTop: 6,
+    },
+    empty: {
+        textAlign: "center",
+        marginTop: 32,
+        color: "#9ca3af",
+        fontSize: 14,
+    },
+    fab: {
+        position: "absolute",
+        bottom: 30,
+        right: 20,
+        backgroundColor: "#111827",
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 4,
+    },
+    fabText: {
+        fontSize: 28,
+        color: "#ffffff",
+        lineHeight: 28,
     },
 });
