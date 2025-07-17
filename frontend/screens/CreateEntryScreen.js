@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -10,31 +10,128 @@ import {
     ScrollView,
 } from "react-native";
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../constants/constants";
 
+const formatDate = (date) =>
+    date
+        ? `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(
+              2,
+              "0"
+          )}/${date.getFullYear()}`
+        : "";
+
+const formatTime = (date) =>
+    date
+        ? `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(
+              2,
+              "0"
+          )}`
+        : "";
+
+const formatDateInput = (text) => {
+    const digits = text.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+};
+
+const formatTimeInput = (text) => {
+    const digits = text.replace(/\D/g, "").slice(0, 4);
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+};
+
 export default function CreateEntryScreen() {
-    const [type, setType] = useState("task"); // 'task' or 'habit'
-    const [title, setTitle] = useState("");
-    const [dueDate, setDueDate] = useState(new Date());
-    const [reminder, setReminder] = useState(null);
+    const {
+        mode,
+        id,
+        type: initialType,
+        title: initialTitle,
+        description: initialDescription,
+        dueDate: initialDueDate,
+        reminder: initialReminder,
+        tags: initialTags,
+        priority: initialPriority,
+        target: initialTarget,
+        unit: initialUnit,
+        habitType: initialHabitType,
+    } = useLocalSearchParams();
+
+    const isEditing = mode === "edit";
+    const [type, setType] = useState(initialType || "task");
+    const [title, setTitle] = useState(initialTitle || "");
+    const [description, setDescription] = useState(initialDescription || "");
+    const [dueDate, setDueDate] = useState(initialDueDate ? new Date(initialDueDate) : new Date());
+    const [reminder, setReminder] = useState(initialReminder ? new Date(initialReminder) : null);
+    const [tags, setTags] = useState(initialTags || "");
+    const [priority, setPriority] = useState(initialPriority || "Medium");
+
+    const [dueDateInput, setDueDateInput] = useState(formatDate(dueDate));
+    const [reminderDateInput, setReminderDateInput] = useState(
+        reminder ? formatDate(reminder) : ""
+    );
+    const [reminderTimeInput, setReminderTimeInput] = useState(
+        reminder ? formatTime(reminder) : ""
+    );
+
+    // Habit fields
+    const [habitTarget, setHabitTarget] = useState(initialTarget || "");
+    const [habitUnit, setHabitUnit] = useState(initialUnit || "");
+    const [habitType, setHabitType] = useState(initialHabitType || "");
+
     const [showDueDatePicker, setShowDueDatePicker] = useState(false);
     const [showReminderPicker, setShowReminderPicker] = useState(false);
-    const [tags, setTags] = useState("");
-    const [priority, setPriority] = useState("Medium");
-
-    // Habit-specific
-    const [habitTarget, setHabitTarget] = useState("");
-    const [habitUnit, setHabitUnit] = useState("");
-    const [habitType, setHabitType] = useState("");
-
     const router = useRouter();
 
+    useEffect(() => {
+        if (reminder) {
+            setReminderDateInput(formatDate(reminder));
+            setReminderTimeInput(formatTime(reminder));
+        }
+    }, [reminder]);
+
+    useEffect(() => {
+        if (mode === "edit" && initialType) {
+            setType(initialType);
+        }
+    }, [mode, initialType]);
+
+    const parseDate = (str) => {
+        const [dd, mm, yyyy] = str.split("/").map(Number);
+        return new Date(yyyy, mm - 1, dd);
+    };
+
+    const parseTime = (str) => {
+        const [hh, mm] = str.split(":").map(Number);
+        return { hh, mm };
+    };
+
     const handleSubmit = async () => {
+        let parsedDueDate = dueDate;
+        let parsedReminder = reminder;
+
+        if (Platform.OS === "web") {
+            try {
+                if (dueDateInput) parsedDueDate = parseDate(dueDateInput);
+                if (reminderDateInput) {
+                    parsedReminder = parseDate(reminderDateInput);
+                    if (reminderTimeInput) {
+                        const { hh, mm } = parseTime(reminderTimeInput);
+                        parsedReminder.setHours(hh);
+                        parsedReminder.setMinutes(mm);
+                    }
+                }
+            } catch (e) {
+                console.warn("Date parse error:", e);
+            }
+        }
+
         const taskPayload = {
             title,
-            dueDate,
-            reminder,
+            description,
+            dueDate: parsedDueDate,
+            reminder: parsedReminder,
             tags: tags.split(",").map((t) => t.trim()),
             priority,
         };
@@ -46,17 +143,18 @@ export default function CreateEntryScreen() {
             unit: habitUnit,
         };
 
-        const url = type === "task" ? `${API_URL}/api/tasks` : `${API_URL}/api/habits`;
-
+        const url = `${API_URL}/api/${type === "task" ? "tasks" : "habits"}${
+            isEditing ? `/${id}` : ""
+        }`;
         const payload = type === "task" ? taskPayload : habitPayload;
 
         try {
             await fetch(url, {
-                method: "POST",
+                method: isEditing ? "PATCH" : "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-            router.replace("/calendar");
+            router.back();
         } catch (err) {
             console.error("Failed to submit entry", err);
         }
@@ -64,23 +162,30 @@ export default function CreateEntryScreen() {
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.heading}>Create New {type === "task" ? "Task" : "Habit"}</Text>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+                <Text style={styles.backText}>← Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.heading}>
+                {isEditing
+                    ? `Edit ${type === "task" ? "Task" : "Habit"}`
+                    : `Create New ${type === "task" ? "Task" : "Habit"}`}
+            </Text>
 
-            {/* Toggle Type */}
-            <View style={styles.toggleRow}>
-                <TouchableOpacity
-                    style={[styles.toggleButton, type === "task" && styles.activeToggle]}
-                    onPress={() => setType("task")}>
-                    <Text style={styles.toggleText}>Task</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.toggleButton, type === "habit" && styles.activeToggle]}
-                    onPress={() => setType("habit")}>
-                    <Text style={styles.toggleText}>Habit</Text>
-                </TouchableOpacity>
-            </View>
+            {!isEditing && (
+                <View style={styles.toggleRow}>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, type === "task" && styles.activeToggle]}
+                        onPress={() => setType("task")}>
+                        <Text style={styles.toggleText}>Task</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.toggleButton, type === "habit" && styles.activeToggle]}
+                        onPress={() => setType("habit")}>
+                        <Text style={styles.toggleText}>Habit</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
-            {/* Shared */}
             <TextInput
                 style={styles.input}
                 placeholder="Title"
@@ -88,77 +193,57 @@ export default function CreateEntryScreen() {
                 onChangeText={setTitle}
             />
 
-            {/* Task-specific fields */}
             {type === "task" && (
                 <>
-                    <TouchableOpacity
-                        onPress={() => setShowDueDatePicker(true)}
-                        style={styles.dateButton}>
-                        <Text style={styles.dateButtonText}>Pick Due Date</Text>
-                    </TouchableOpacity>
-                    {showDueDatePicker && (
-                        <DateTimePicker
-                            value={dueDate}
-                            mode="date"
-                            display="default"
-                            onChange={(e, selectedDate) => {
-                                if (Platform.OS === "android") setShowDueDatePicker(false);
-                                if (selectedDate) setDueDate(selectedDate);
-                            }}
-                        />
+                    <TextInput
+                        style={[styles.input, styles.textArea]}
+                        placeholder="Description (optional)"
+                        value={description}
+                        onChangeText={setDescription}
+                        multiline
+                    />
+
+                    {Platform.OS === "web" ? (
+                        <>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Due Date (DD/MM/YYYY)"
+                                value={dueDateInput}
+                                onChangeText={(text) => setDueDateInput(formatDateInput(text))}
+                            />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Reminder Date (DD/MM/YYYY)"
+                                value={reminderDateInput}
+                                onChangeText={(text) => setReminderDateInput(formatDateInput(text))}
+                            />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Reminder Time (HH:mm)"
+                                value={reminderTimeInput}
+                                onChangeText={(text) => setReminderTimeInput(formatTimeInput(text))}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <TouchableOpacity
+                                onPress={() => setShowDueDatePicker(true)}
+                                style={styles.dateButton}>
+                                <Text style={styles.dateButtonText}>Pick Due Date</Text>
+                            </TouchableOpacity>
+                            {showDueDatePicker && (
+                                <DateTimePicker
+                                    value={dueDate}
+                                    mode="date"
+                                    display="default"
+                                    onChange={(e, selectedDate) => {
+                                        setShowDueDatePicker(false);
+                                        if (selectedDate) setDueDate(selectedDate);
+                                    }}
+                                />
+                            )}
+                        </>
                     )}
-
-                    <TouchableOpacity
-                        onPress={() => {
-                            if (Platform.OS === "android") {
-                                DateTimePickerAndroid.open({
-                                    value: reminder || new Date(),
-                                    mode: "date",
-                                    is24Hour: true,
-                                    onChange: (event, selectedDate) => {
-                                        if (selectedDate) {
-                                            setReminder((prev) => {
-                                                const time = prev || new Date();
-                                                const combined = new Date(selectedDate);
-                                                combined.setHours(time.getHours());
-                                                combined.setMinutes(time.getMinutes());
-                                                return combined;
-                                            });
-                                        }
-                                    },
-                                });
-                            } else {
-                                setShowReminderPicker(true); // fallback for iOS/web
-                            }
-                        }}
-                        style={styles.dateButton}>
-                        <Text style={styles.dateButtonText}>Pick Reminder Date</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        onPress={() => {
-                            if (Platform.OS === "android") {
-                                DateTimePickerAndroid.open({
-                                    value: reminder || new Date(),
-                                    mode: "time",
-                                    is24Hour: true,
-                                    onChange: (event, selectedTime) => {
-                                        if (selectedTime) {
-                                            setReminder((prev) => {
-                                                const date = prev || new Date();
-                                                const combined = new Date(date);
-                                                combined.setHours(selectedTime.getHours());
-                                                combined.setMinutes(selectedTime.getMinutes());
-                                                return combined;
-                                            });
-                                        }
-                                    },
-                                });
-                            }
-                        }}
-                        style={styles.dateButton}>
-                        <Text style={styles.dateButtonText}>Pick Reminder Time</Text>
-                    </TouchableOpacity>
 
                     <TextInput
                         style={styles.input}
@@ -166,7 +251,6 @@ export default function CreateEntryScreen() {
                         value={tags}
                         onChangeText={setTags}
                     />
-
                     <View style={styles.toggleRow}>
                         {["Low", "Medium", "High"].map((level) => (
                             <TouchableOpacity
@@ -183,32 +267,35 @@ export default function CreateEntryScreen() {
                 </>
             )}
 
-            {/* Habit-specific fields */}
             {type === "habit" && (
                 <>
                     <TextInput
                         style={styles.input}
-                        placeholder="Habit Type (e.g. Water, Shower)"
+                        placeholder="Habit Type"
                         value={habitType}
                         onChangeText={setHabitType}
                     />
                     <TextInput
                         style={styles.input}
-                        placeholder="Target Number (e.g. 8)"
+                        placeholder="Target (e.g. 8)"
                         keyboardType="numeric"
                         value={habitTarget}
                         onChangeText={setHabitTarget}
                     />
                     <TextInput
                         style={styles.input}
-                        placeholder="Unit (e.g. cups, kcal, times)"
+                        placeholder="Unit (e.g. cups)"
                         value={habitUnit}
                         onChangeText={setHabitUnit}
                     />
                 </>
             )}
 
-            <Button title="Create" onPress={handleSubmit} disabled={!title.trim()} />
+            <Button
+                title={isEditing ? "Save Changes" : "Create"}
+                onPress={handleSubmit}
+                disabled={!title.trim()}
+            />
         </ScrollView>
     );
 }
@@ -223,6 +310,7 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "600",
         marginBottom: 20,
+        textAlign: "center",
     },
     toggleRow: {
         flexDirection: "row",
@@ -258,5 +346,24 @@ const styles = StyleSheet.create({
     dateButtonText: {
         textAlign: "center",
         color: "#111827",
+    },
+    textArea: {
+        minHeight: 80,
+        textAlignVertical: "top",
+    },
+    backBtn: {
+        marginBottom: 20,
+        marginTop: 10,
+        alignSelf: "flex-start",
+        backgroundColor: "#E0F2FE",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+    },
+
+    backText: {
+        fontSize: 14,
+        fontWeight: "500",
+        color: "#2196F3",
     },
 });

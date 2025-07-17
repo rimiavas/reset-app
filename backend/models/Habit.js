@@ -9,6 +9,11 @@ const habitSchema = new mongoose.Schema(
         target: { type: Number },
         unit: { type: String },
         lastCompleted: { type: Date },
+        log: {
+            type: Map,
+            of: Number,
+            default: {},
+        },
     },
     { timestamps: true }
 );
