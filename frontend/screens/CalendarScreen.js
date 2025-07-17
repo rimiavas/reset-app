@@ -190,29 +190,56 @@ export default function CalendarScreen() {
         <View style={styles.container}>
             {/* Top Section: Date + Tabs */}
             <View style={styles.topSection}>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.dateRow}
-                    contentContainerStyle={styles.dateRowContent}>
-                    {getDates().map((date, index) => (
+                <View style={styles.calendarContainer}>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}>
+                        <Text style={styles.monthLabel}>{format(selectedDate, "MMMM yyyy")}</Text>
                         <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.dateButton,
-                                isSameDay(date, selectedDate) && styles.activeDate,
-                            ]}
-                            onPress={() => setSelectedDate(date)}>
-                            <Text
-                                style={[
-                                    styles.dateText,
-                                    isSameDay(date, selectedDate) && styles.activeDateText,
-                                ]}>
-                                {format(date, "dd MMM")}
-                            </Text>
+                            tyle={styles.addButton}
+                            onPress={() =>
+                                router.push({
+                                    pathname: "/create-entry",
+                                    params: {
+                                        mode: "create",
+                                        type: view === "tasks" ? "task" : "habit",
+                                    },
+                                })
+                            }>
+                            <Text style={styles.addButtonText}>Add Task/Habit</Text>
                         </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                    </View>
+
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.dateRow}
+                        contentContainerStyle={styles.dateRowContent}>
+                        {getDates().map((date, index) => {
+                            const active = isSameDay(date, selectedDate);
+                            return (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[styles.dateButton, active && styles.activeDate]}
+                                    onPress={() => setSelectedDate(date)}>
+                                    <Text style={[styles.dayText, active && styles.activeDateText]}>
+                                        {format(date, "EEE")}
+                                    </Text>
+                                    <Text
+                                        style={[
+                                            styles.dateNumber,
+                                            active && styles.activeDateText,
+                                        ]}>
+                                        {format(date, "d")}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
 
                 <View style={styles.tabRow}>
                     <TouchableOpacity
@@ -492,30 +519,70 @@ const styles = StyleSheet.create({
     topSection: {
         marginBottom: 12,
     },
+    alendarContainer: {
+        width: "100%",
+        height: 144,
+        flexShrink: 0,
+        marginBottom: 12,
+    },
+    monthLabel: {
+        width: 127,
+        height: 20,
+        textAlign: "center",
+        fontSize: 24,
+        fontWeight: "600",
+        color: "#111827",
+    },
+    addButton: {
+        width: 96,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: "#2196F3",
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    addButtonText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "600",
+    },
     dateRow: {
         flexDirection: "row",
+        marginTop: 12,
         marginBottom: 8,
-        height: 40,
+        height: 64,
     },
     dateRowContent: {
         paddingHorizontal: 4,
     },
     dateButton: {
-        width: 72,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: "#e5e7eb",
+        width: 50,
+        height: 50,
+        borderRadius: 10,
+        backgroundColor: "#EBF2FF",
         marginRight: 8,
         justifyContent: "center",
         alignItems: "center",
     },
     activeDate: {
-        backgroundColor: "#111827",
+        width: 64,
+        height: 64,
+        borderRadius: 10,
+        backgroundColor: "#2196F3",
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
     },
-    dateText: {
+    dateNumber: {
+        fontFamily: "Inter",
         fontSize: 14,
-        fontWeight: "500",
-        color: "#111827",
+        fontWeight: "600",
+        color: "#2196F3",
     },
     activeDateText: {
         color: "#ffffff",
