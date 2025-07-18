@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
     View,
     Text,
@@ -15,6 +15,12 @@ import {
 import { useFocusEffect, useRouter } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    interpolate,
+} from "react-native-reanimated";
 
 export default function CalendarScreen() {
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -28,6 +34,27 @@ export default function CalendarScreen() {
     const numColumns =
         Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
     const router = useRouter();
+
+    // Width of each tab for animation calculations
+    const [tabWidth, setTabWidth] = useState(0);
+
+    // Shared value controlling tab indicator translate
+    const tabTranslate = useSharedValue(0);
+
+    // Update animation when view changes
+    useEffect(() => {
+        tabTranslate.value = withTiming(view === "tasks" ? 0 : 1, {
+            duration: 300,
+        });
+    }, [view]);
+
+    // Animated style for sliding background
+    const animatedBgStyle = useAnimatedStyle(() => {
+        const translateX = interpolate(tabTranslate.value, [0, 1], [0, tabWidth]);
+        return {
+            transform: [{ translateX }],
+        };
+    });
 
     const fetchData = useCallback(() => {
         return Promise.all([
@@ -54,10 +81,19 @@ export default function CalendarScreen() {
         fetchData().finally(() => setRefreshing(false));
     };
 
+    const [dateRange, setDateRange] = useState({
+        start: addDays(new Date(), -30),
+        end: addDays(new Date(), 30),
+    });
+
+    const scrollRef = useRef();
+
     const getDates = () => {
         const dates = [];
-        for (let i = -3; i <= 7; i++) {
-            dates.push(addDays(new Date(), i));
+        let current = dateRange.start;
+        while (current <= dateRange.end) {
+            dates.push(current);
+            current = addDays(current, 1);
         }
         return dates;
     };
@@ -126,6 +162,7 @@ export default function CalendarScreen() {
                     console.error(`Error deleting ${route.slice(0, -1)}:`, err);
                 } finally {
                     setSelectedTaskId(null);
+                    setSelectedHabitId(null);
                 }
             }
         } else {
@@ -151,6 +188,7 @@ export default function CalendarScreen() {
                                 console.error(`Error deleting ${route.slice(0, -1)}:`, err);
                             } finally {
                                 setSelectedTaskId(null);
+                                setSelectedHabitId(null);
                             }
                         },
                     },
@@ -175,6 +213,38 @@ export default function CalendarScreen() {
         }
     };
 
+    useEffect(() => {
+        if (scrollRef.current && getDates().length) {
+            const todayIndex = getDates().findIndex((date) => isSameDay(date, new Date()));
+            if (todayIndex > 0) {
+                scrollRef.current.scrollTo({
+                    x: Math.max(0, (todayIndex - 4) * 50),
+                    animated: false,
+                });
+            }
+        }
+    }, []);
+
+    const handleDateScroll = (event) => {
+        const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+
+        // Near the right edge: extend further into the future
+        if (contentOffset.x + layoutMeasurement.width > contentSize.width - 200) {
+            setDateRange((prev) => ({
+                ...prev,
+                end: addDays(prev.end, 60),
+            }));
+        }
+
+        // Near the left edge: extend further into the past
+        if (contentOffset.x < 200) {
+            setDateRange((prev) => ({
+                ...prev,
+                start: addDays(prev.start, -60),
+            }));
+        }
+    };
+
     function EmptyState({ label, onPress }) {
         return (
             <View style={styles.EmptyContainer}>
@@ -191,15 +261,10 @@ export default function CalendarScreen() {
             {/* Top Section: Date + Tabs */}
             <View style={styles.topSection}>
                 <View style={styles.calendarContainer}>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}>
+                    <View style={styles.topRow}>
                         <Text style={styles.monthLabel}>{format(selectedDate, "MMMM yyyy")}</Text>
                         <TouchableOpacity
-                            tyle={styles.addButton}
+                            style={styles.addButton}
                             onPress={() =>
                                 router.push({
                                     pathname: "/create-entry",
@@ -209,20 +274,25 @@ export default function CalendarScreen() {
                                     },
                                 })
                             }>
-                            <Text style={styles.addButtonText}>Add Task/Habit</Text>
+                            <Text style={styles.addButtonText}>
+                                + Add {view === "tasks" ? "Task" : "Habit"}
+                            </Text>
                         </TouchableOpacity>
                     </View>
 
                     <ScrollView
+                        ref={scrollRef}
                         horizontal
-                        showsHorizontalScrollIndicator={false}
+                        showsHorizontalScrollIndicator={true}
                         style={styles.dateRow}
-                        contentContainerStyle={styles.dateRowContent}>
+                        contentContainerStyle={styles.dateRowContent}
+                        onScroll={handleDateScroll}
+                        scrollEventThrottle={16}>
                         {getDates().map((date, index) => {
                             const active = isSameDay(date, selectedDate);
                             return (
                                 <TouchableOpacity
-                                    key={index}
+                                    key={date.toISOString()}
                                     style={[styles.dateButton, active && styles.activeDate]}
                                     onPress={() => setSelectedDate(date)}>
                                     <Text style={[styles.dayText, active && styles.activeDateText]}>
@@ -241,17 +311,19 @@ export default function CalendarScreen() {
                     </ScrollView>
                 </View>
 
-                <View style={styles.tabRow}>
-                    <TouchableOpacity
-                        style={[styles.tab, view === "tasks" && styles.activeTab]}
-                        onPress={() => setView("tasks")}>
+                <View
+                    style={styles.tabRow}
+                    onLayout={(event) => {
+                        const fullWidth = event.nativeEvent.layout.width;
+                        setTabWidth(fullWidth / 2);
+                    }}>
+                    <Animated.View style={[styles.animatedBg, animatedBgStyle]} />
+                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setView("tasks")}>
                         <Text style={[styles.tabText, view === "tasks" && styles.activeTabText]}>
                             Tasks
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.tab, view === "habits" && styles.activeTab]}
-                        onPress={() => setView("habits")}>
+                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setView("habits")}>
                         <Text style={[styles.tabText, view === "habits" && styles.activeTabText]}>
                             Habits
                         </Text>
@@ -501,10 +573,6 @@ export default function CalendarScreen() {
                     )}
                 </View>
             )}
-            {/* FAB */}
-            <TouchableOpacity style={styles.fab} onPress={() => router.push("/create-entry")}>
-                <Text style={styles.fabText}>＋</Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -519,19 +587,27 @@ const styles = StyleSheet.create({
     topSection: {
         marginBottom: 12,
     },
-    alendarContainer: {
+    calendarContainer: {
         width: "100%",
         height: 144,
         flexShrink: 0,
         marginBottom: 12,
     },
+    topRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 10,
+        width: "100%",
+        paddingHorizontal: 0,
+        gap: 8,
+    },
     monthLabel: {
-        width: 127,
-        height: 20,
-        textAlign: "center",
-        fontSize: 24,
+        fontSize: Dimensions.get("window").width < 380 ? 18 : 24,
         fontWeight: "600",
         color: "#111827",
+        fontFamily: "Rufina",
+        flexShrink: 1,
     },
     addButton: {
         width: 96,
@@ -540,16 +616,20 @@ const styles = StyleSheet.create({
         backgroundColor: "#2196F3",
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: "#0D60DF",
         shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 20,
+        elevation: 4,
+        flexShrink: 0,
     },
     addButtonText: {
         color: "#fff",
-        fontSize: 12,
-        fontWeight: "600",
+        fontWeight: "bold",
+        fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
+        fontFamily: "Inter",
     },
+
     dateRow: {
         flexDirection: "row",
         marginTop: 12,
@@ -560,8 +640,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
     dateButton: {
-        width: 50,
-        height: 50,
+        width: Dimensions.get("window").width < 380 ? 36 : 50,
+        height: Dimensions.get("window").width < 380 ? 36 : 50,
         borderRadius: 10,
         backgroundColor: "#EBF2FF",
         marginRight: 8,
@@ -569,8 +649,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     activeDate: {
-        width: 64,
-        height: 64,
+        width: Dimensions.get("window").width < 380 ? 46 : 64,
+        height: Dimensions.get("window").width < 380 ? 46 : 64,
         borderRadius: 10,
         backgroundColor: "#2196F3",
         shadowColor: "#000",
@@ -580,7 +660,7 @@ const styles = StyleSheet.create({
     },
     dateNumber: {
         fontFamily: "Inter",
-        fontSize: 14,
+        fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
         fontWeight: "600",
         color: "#2196F3",
     },
@@ -589,22 +669,38 @@ const styles = StyleSheet.create({
     },
     tabRow: {
         flexDirection: "row",
+        backgroundColor: "#ffffff",
+        borderRadius: 10,
+        marginBottom: 20,
+        alignSelf: "center",
+        width: "100%",
+        height: 57,
+        position: "relative",
+        overflow: "hidden",
+    },
+    tabTouchable: {
+        flex: 1,
         justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1,
     },
-    tab: {
-        paddingVertical: 10,
-        paddingHorizontal: 18,
-        borderRadius: 20,
-        marginHorizontal: 8,
-        backgroundColor: "#e5e7eb",
-    },
-    activeTab: {
-        backgroundColor: "#111827",
+    animatedBg: {
+        position: "absolute",
+        height: "100%",
+        width: "50%",
+        backgroundColor: "#2196F3",
+        borderRadius: 10,
+        top: 0,
+        left: 0,
+        zIndex: 0,
     },
     tabText: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#111827",
+        fontFamily: "Inter",
+        fontSize: 15,
+        fontWeight: "500",
+        letterSpacing: 0.6,
+        textTransform: "capitalize",
+        color: "#90A5B4",
     },
     activeTabText: {
         color: "#ffffff",
@@ -644,17 +740,17 @@ const styles = StyleSheet.create({
         bottom: 30,
         right: 20,
         backgroundColor: "#111827",
-        width: 56,
-        height: 56,
-        borderRadius: 28,
+        width: 140,
+        height: 48,
+        borderRadius: 24,
         justifyContent: "center",
         alignItems: "center",
         elevation: 4,
     },
     fabText: {
-        fontSize: 28,
+        fontSize: 16,
+        fontWeight: "600",
         color: "#ffffff",
-        lineHeight: 28,
     },
 
     // Menu styles (3-dot dropdown)
