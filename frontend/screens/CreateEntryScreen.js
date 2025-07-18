@@ -3,16 +3,24 @@ import {
     View,
     Text,
     TextInput,
-    Button,
     StyleSheet,
     TouchableOpacity,
     Platform,
     ScrollView,
 } from "react-native";
-import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    interpolate,
+} from "react-native-reanimated";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../constants/constants";
 
+// =================
+// FORMATS DATE+INPUT
+// ================
 const formatDate = (date) =>
     date
         ? `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(
@@ -43,6 +51,9 @@ const formatTimeInput = (text) => {
 };
 
 export default function CreateEntryScreen() {
+    // ================
+    // PARAMETERS & STATE
+    // ================
     const {
         mode,
         id,
@@ -67,6 +78,20 @@ export default function CreateEntryScreen() {
     const [tags, setTags] = useState(initialTags || "");
     const [priority, setPriority] = useState(initialPriority || "Medium");
 
+    // Habits Field
+    const [habitTarget, setHabitTarget] = useState(initialTarget || "");
+    const [habitUnit, setHabitUnit] = useState(initialUnit || "");
+    const [habitType, setHabitType] = useState(initialHabitType || "");
+
+    // Input & animation
+    const [tabWidth, setTabWidth] = useState(0);
+    const [priorityWidth, setPriorityWidth] = useState(0);
+    const typeTranslate = useSharedValue(type === "task" ? 0 : 1);
+    const priorityTranslate = useSharedValue(
+        priority === "Low" ? 0 : priority === "Medium" ? 1 : 2
+    );
+
+    // Inputs for date/time fields (for web)
     const [dueDateInput, setDueDateInput] = useState(formatDate(dueDate));
     const [reminderDateInput, setReminderDateInput] = useState(
         reminder ? formatDate(reminder) : ""
@@ -75,15 +100,14 @@ export default function CreateEntryScreen() {
         reminder ? formatTime(reminder) : ""
     );
 
-    // Habit fields
-    const [habitTarget, setHabitTarget] = useState(initialTarget || "");
-    const [habitUnit, setHabitUnit] = useState(initialUnit || "");
-    const [habitType, setHabitType] = useState(initialHabitType || "");
-
+    // Other
     const [showDueDatePicker, setShowDueDatePicker] = useState(false);
-    const [showReminderPicker, setShowReminderPicker] = useState(false);
+    const [errors, setErrors] = useState({});
     const router = useRouter();
 
+    // ================
+    // EFFECTS
+    // ================
     useEffect(() => {
         if (reminder) {
             setReminderDateInput(formatDate(reminder));
@@ -97,6 +121,18 @@ export default function CreateEntryScreen() {
         }
     }, [mode, initialType]);
 
+    useEffect(() => {
+        typeTranslate.value = withTiming(type === "task" ? 0 : 1, { duration: 300 });
+    }, [type]);
+
+    useEffect(() => {
+        const index = priority === "Low" ? 0 : priority === "Medium" ? 1 : 2;
+        priorityTranslate.value = withTiming(index, { duration: 300 });
+    }, [priority]);
+
+    // ================
+    // HELPERS
+    // ================
     const parseDate = (str) => {
         const [dd, mm, yyyy] = str.split("/").map(Number);
         return new Date(yyyy, mm - 1, dd);
@@ -107,7 +143,44 @@ export default function CreateEntryScreen() {
         return { hh, mm };
     };
 
+    // ================
+    // ANIMATED STYLES
+    // ================
+    const typeBgStyle = useAnimatedStyle(() => {
+        const translateX = interpolate(typeTranslate.value, [0, 1], [0, tabWidth]);
+        return { transform: [{ translateX }] };
+    });
+
+    const priorityBgStyle = useAnimatedStyle(() => {
+        const translateX = interpolate(
+            priorityTranslate.value,
+            [0, 1, 2],
+            [0, priorityWidth, priorityWidth * 2]
+        );
+        let bgColor = "#E0F2FE";
+        if (priorityTranslate.value === 0) bgColor = "#0EA5E9"; // Low: blue
+        if (priorityTranslate.value === 1) bgColor = "#F97316"; // Medium: orange
+        if (priorityTranslate.value === 2) bgColor = "#EF4444"; // High: red
+        return { transform: [{ translateX }], backgroundColor: bgColor };
+    });
+
+    // ================
+    // VALIDATION
+    // ================
+    const validate = () => {
+        const err = {};
+        if (!title.trim()) err.title = "Title is required";
+        if (type === "habit" && !habitTarget.trim()) err.habitTarget = "Target is required";
+        setErrors(err);
+        return Object.keys(err).length === 0;
+    };
+
+    // ================
+    // SUBMIT HANDLER
+    // ================
     const handleSubmit = async () => {
+        if (!validate()) return;
+
         let parsedDueDate = dueDate;
         let parsedReminder = reminder;
 
@@ -132,7 +205,10 @@ export default function CreateEntryScreen() {
             description,
             dueDate: parsedDueDate,
             reminder: parsedReminder,
-            tags: tags.split(",").map((t) => t.trim()),
+            tags: tags
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean),
             priority,
         };
 
@@ -160,54 +236,74 @@ export default function CreateEntryScreen() {
         }
     };
 
+    // ================
+    // MAIN RENDER
+    // ================
     return (
         <ScrollView style={styles.container}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-                <Text style={styles.backText}>← Back</Text>
-            </TouchableOpacity>
-            <Text style={styles.heading}>
-                {isEditing
-                    ? `Edit ${type === "task" ? "Task" : "Habit"}`
-                    : `Create New ${type === "task" ? "Task" : "Habit"}`}
-            </Text>
+            {/* ==== Header ==== */}
+            <View style={styles.headerRow}>
+                <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+                    <Text style={styles.backText}>← Back</Text>
+                </TouchableOpacity>
+                <Text style={styles.heading}>
+                    {isEditing
+                        ? `Edit ${type === "task" ? "Task" : "Habit"}`
+                        : `Create New ${type === "task" ? "Task" : "Habit"}`}
+                </Text>
+                <View style={{ width: 72 }} />
+            </View>
 
+            {/* ==== Type Toggle ==== */}
             {!isEditing && (
-                <View style={styles.toggleRow}>
-                    <TouchableOpacity
-                        style={[styles.toggleButton, type === "task" && styles.activeToggle]}
-                        onPress={() => setType("task")}>
-                        <Text style={styles.toggleText}>Task</Text>
+                <View
+                    style={styles.toggleRow}
+                    onLayout={(e) => setTabWidth(e.nativeEvent.layout.width / 2)}>
+                    <Animated.View style={[styles.animatedBg, typeBgStyle]} />
+                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setType("task")}>
+                        <Text style={[styles.tabText, type === "task" && styles.activeTabText]}>
+                            Task
+                        </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.toggleButton, type === "habit" && styles.activeToggle]}
-                        onPress={() => setType("habit")}>
-                        <Text style={styles.toggleText}>Habit</Text>
+                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setType("habit")}>
+                        <Text style={[styles.tabText, type === "habit" && styles.activeTabText]}>
+                            Habit
+                        </Text>
                     </TouchableOpacity>
                 </View>
             )}
 
+            {/* ==== Title ==== */}
             <TextInput
-                style={styles.input}
-                placeholder="Title"
+                style={[
+                    styles.input,
+                    errors.title && styles.errorInput,
+                    { borderColor: errors.title ? "#EF4444" : "#2196F3" },
+                ]}
+                placeholder={`Title* (e.g. ${type === "task" ? "Finish Project" : "Drink Water"})`}
                 value={title}
                 onChangeText={setTitle}
+                autoFocus
             />
+            {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
 
+            {/* ==== Task Fields ==== */}
             {type === "task" && (
                 <>
                     <TextInput
                         style={[styles.input, styles.textArea]}
-                        placeholder="Description (optional)"
+                        placeholder="Description (optional, e.g. details for your task)"
                         value={description}
                         onChangeText={setDescription}
                         multiline
                     />
 
+                    {/* Dates - Web vs Mobile */}
                     {Platform.OS === "web" ? (
                         <>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Due Date (DD/MM/YYYY)"
+                                placeholder="Due Date* (DD/MM/YYYY)"
                                 value={dueDateInput}
                                 onChangeText={(text) => setDueDateInput(formatDateInput(text))}
                             />
@@ -247,95 +343,186 @@ export default function CreateEntryScreen() {
 
                     <TextInput
                         style={styles.input}
-                        placeholder="Tags (comma separated)"
+                        placeholder="Tags (comma separated, e.g. uni, urgent)"
                         value={tags}
                         onChangeText={setTags}
                     />
-                    <View style={styles.toggleRow}>
+
+                    {/* ==== Priority Toggle ==== */}
+                    <View
+                        style={styles.priorityRow}
+                        onLayout={(e) => setPriorityWidth(e.nativeEvent.layout.width / 3)}>
+                        <Animated.View style={[styles.priorityBg, priorityBgStyle]} />
                         {["Low", "Medium", "High"].map((level) => (
                             <TouchableOpacity
                                 key={level}
-                                style={[
-                                    styles.toggleButton,
-                                    priority === level && styles.activeToggle,
-                                ]}
+                                style={styles.priorityTouchable}
                                 onPress={() => setPriority(level)}>
-                                <Text style={styles.toggleText}>{level}</Text>
+                                <Text
+                                    style={[
+                                        styles.priorityText,
+                                        priority === level && styles.activePriorityText,
+                                    ]}>
+                                    {level}
+                                </Text>
                             </TouchableOpacity>
                         ))}
                     </View>
                 </>
             )}
 
+            {/* ==== Habit Fields ==== */}
             {type === "habit" && (
                 <>
                     <TextInput
                         style={styles.input}
-                        placeholder="Habit Type"
+                        placeholder="Habit Type (optional, e.g. hydration, sleep)"
                         value={habitType}
                         onChangeText={setHabitType}
                     />
                     <TextInput
-                        style={styles.input}
-                        placeholder="Target (e.g. 8)"
+                        style={[
+                            styles.input,
+                            errors.habitTarget && styles.errorInput,
+                            { borderColor: errors.habitTarget ? "#EF4444" : "#2196F3" },
+                        ]}
+                        placeholder="Target* (e.g. 8)"
                         keyboardType="numeric"
                         value={habitTarget}
                         onChangeText={setHabitTarget}
                     />
+                    {errors.habitTarget && (
+                        <Text style={styles.errorText}>{errors.habitTarget}</Text>
+                    )}
                     <TextInput
                         style={styles.input}
-                        placeholder="Unit (e.g. cups)"
+                        placeholder="Unit (e.g. cups, hours, steps)"
                         value={habitUnit}
                         onChangeText={setHabitUnit}
                     />
                 </>
             )}
 
-            <Button
-                title={isEditing ? "Save Changes" : "Create"}
+            {/* ==== Submit Button ==== */}
+            <TouchableOpacity
+                style={[
+                    styles.submitBtn,
+                    (!title.trim() || (type === "habit" && !habitTarget.trim())) && {
+                        opacity: 0.5,
+                    },
+                ]}
                 onPress={handleSubmit}
-                disabled={!title.trim()}
-            />
+                disabled={!title.trim() || (type === "habit" && !habitTarget.trim())}>
+                <Text style={styles.submitText}>{isEditing ? "Save Changes" : "Create"}</Text>
+            </TouchableOpacity>
         </ScrollView>
     );
 }
 
+// ================
+// STYLES
+// ================
 const styles = StyleSheet.create({
+    // Main container styles
     container: {
-        padding: 20,
-        paddingTop: 60,
+        flex: 1,
+        paddingTop: 80,
+        paddingHorizontal: 20,
         backgroundColor: "#f9fafb",
     },
-    heading: {
-        fontSize: 22,
-        fontWeight: "600",
+
+    // Header
+    headerRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         marginBottom: 20,
+    },
+    heading: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#2196F3",
+        fontFamily: "Rufina",
+        flex: 1,
         textAlign: "center",
     },
+    backBtn: {
+        backgroundColor: "#E0F2FE",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        marginRight: 8,
+    },
+    backText: {
+        fontSize: 14,
+        fontWeight: "500",
+        color: "#2196F3",
+    },
+
+    // Toggle
     toggleRow: {
         flexDirection: "row",
-        marginBottom: 16,
+        backgroundColor: "#ffffff",
+        borderRadius: 10,
+        marginBottom: 20,
+        alignSelf: "center",
+        width: "100%",
+        height: 40,
+        position: "relative",
+        overflow: "hidden",
     },
-    toggleButton: {
+    tabTouchable: {
         flex: 1,
-        padding: 12,
-        marginHorizontal: 5,
-        backgroundColor: "#e5e7eb",
-        borderRadius: 8,
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1,
     },
-    activeToggle: {
-        backgroundColor: "#d1d5db",
+    animatedBg: {
+        position: "absolute",
+        height: "100%",
+        width: "50%",
+        backgroundColor: "#2196F3",
+        borderRadius: 10,
+        top: 0,
+        left: 0,
+        zIndex: 0,
     },
-    toggleText: {
-        textAlign: "center",
+    tabText: {
+        fontFamily: "Inter",
+        fontSize: 15,
         fontWeight: "500",
+        letterSpacing: 0.6,
+        textTransform: "capitalize",
+        color: "#90A5B4",
     },
+    activeTabText: {
+        color: "#ffffff",
+    },
+
+    // Inputs
     input: {
         padding: 12,
-        borderColor: "#d1d5db",
+        borderColor: "#2196F3",
         borderWidth: 1,
         borderRadius: 8,
         marginBottom: 16,
+        fontFamily: "Inter",
+        fontSize: 14,
+        backgroundColor: "#fff",
+    },
+    textArea: {
+        minHeight: 80,
+        textAlignVertical: "top",
+    },
+    errorInput: {
+        borderColor: "#EF4444",
+    },
+    errorText: {
+        color: "#EF4444",
+        fontSize: 12,
+        marginTop: -12,
+        marginBottom: 8,
+        marginLeft: 4,
     },
     dateButton: {
         marginBottom: 16,
@@ -347,23 +534,70 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: "#111827",
     },
-    textArea: {
-        minHeight: 80,
-        textAlignVertical: "top",
-    },
-    backBtn: {
+
+    // Priority row
+    priorityRow: {
+        flexDirection: "row",
+        backgroundColor: "#ffffff",
+        borderRadius: 10,
         marginBottom: 20,
-        marginTop: 10,
-        alignSelf: "flex-start",
-        backgroundColor: "#E0F2FE",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 8,
+        alignSelf: "center",
+        width: "100%",
+        height: 40,
+        position: "relative",
+        overflow: "hidden",
+    },
+    priorityTouchable: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 2,
+    },
+    priorityBg: {
+        position: "absolute",
+        height: "100%",
+        width: "33.33%",
+        backgroundColor: "#2196F3",
+        borderRadius: 10,
+        top: 0,
+        left: 0,
+        zIndex: 1,
+    },
+    priorityText: {
+        fontFamily: "Inter",
+        fontSize: 15,
+        fontWeight: "500",
+        letterSpacing: 0.6,
+        textTransform: "capitalize",
+        color: "#90A5B4",
+        textShadowColor: "rgba(0, 0, 0, 0.12)",
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 1,
+        zIndex: 3,
+    },
+    activePriorityText: {
+        color: "#fff",
+        fontWeight: "700",
+        textShadowColor: "rgba(0, 0, 0, 0.15)",
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+        backgroundColor: "transparent",
+        zIndex: 4,
     },
 
-    backText: {
-        fontSize: 14,
-        fontWeight: "500",
-        color: "#2196F3",
+    // Submit button
+    submitBtn: {
+        backgroundColor: "#2196F3",
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        alignItems: "center",
+        marginTop: 10,
+        marginBottom: 40,
+    },
+    submitText: {
+        color: "#fff",
+        fontWeight: "600",
+        fontSize: 15,
     },
 });

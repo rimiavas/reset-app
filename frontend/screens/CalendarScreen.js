@@ -23,71 +23,70 @@ import Animated, {
 } from "react-native-reanimated";
 
 export default function CalendarScreen() {
+    // ================
+    // STATE MANAGEMENT
+    // ================
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [view, setView] = useState("tasks");
+    const [view, setView] = useState("tasks"); // "tasks" or "habits"
     const [tasks, setTasks] = useState([]);
     const [habits, setHabits] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedTaskId, setSelectedTaskId] = useState(null);
     const [selectedHabitId, setSelectedHabitId] = useState(null);
     const [sortMode, setSortMode] = useState("dueDate");
+    const isToday = isSameDay(selectedDate, new Date());
     const numColumns =
         Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
     const router = useRouter();
 
-    // Width of each tab for animation calculations
+    // Animation for tab switcher
     const [tabWidth, setTabWidth] = useState(0);
-
-    // Shared value controlling tab indicator translate
     const tabTranslate = useSharedValue(0);
 
-    // Update animation when view changes
+    // ================
+    // ANIMATION EFFECTS
+    // ================
     useEffect(() => {
-        tabTranslate.value = withTiming(view === "tasks" ? 0 : 1, {
-            duration: 300,
-        });
+        tabTranslate.value = withTiming(view === "tasks" ? 0 : 1, { duration: 300 });
     }, [view]);
-
-    // Animated style for sliding background
     const animatedBgStyle = useAnimatedStyle(() => {
         const translateX = interpolate(tabTranslate.value, [0, 1], [0, tabWidth]);
-        return {
-            transform: [{ translateX }],
-        };
+        return { transform: [{ translateX }] };
     });
 
+    // ================
+    // DATA FETCHING
+    // ================
     const fetchData = useCallback(() => {
         return Promise.all([
             fetch(`${API_URL}/api/tasks`)
                 .then((res) => res.json())
                 .then((data) => setTasks(data.filter((task) => !task.completed)))
                 .catch((err) => console.error("Error fetching tasks:", err)),
-
             fetch(`${API_URL}/api/habits`)
                 .then((res) => res.json())
                 .then(setHabits)
                 .catch((err) => console.error("Error fetching habits:", err)),
         ]);
     }, []);
-
     useFocusEffect(
         useCallback(() => {
             fetchData();
         }, [fetchData])
     );
-
     const handleRefresh = () => {
         setRefreshing(true);
         fetchData().finally(() => setRefreshing(false));
     };
 
+    // ================
+    // DATE RANGE + SCROLL LOGIC
+    // ================
     const [dateRange, setDateRange] = useState({
         start: addDays(new Date(), -30),
         end: addDays(new Date(), 30),
     });
-
     const scrollRef = useRef();
-
     const getDates = () => {
         const dates = [];
         let current = dateRange.start;
@@ -97,13 +96,43 @@ export default function CalendarScreen() {
         }
         return dates;
     };
+    // Auto-scroll to today on mount
+    useEffect(() => {
+        if (scrollRef.current && getDates().length) {
+            const todayIndex = getDates().findIndex((date) => isSameDay(date, new Date()));
+            if (todayIndex > 0) {
+                scrollRef.current.scrollTo({
+                    x: Math.max(0, (todayIndex - 4) * 50),
+                    animated: false,
+                });
+            }
+        }
+    }, []);
 
+    // Dynamically extend date range when scrolling left/right
+    const handleDateScroll = (event) => {
+        const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+        if (contentOffset.x + layoutMeasurement.width > contentSize.width - 200) {
+            setDateRange((prev) => ({
+                ...prev,
+                end: addDays(prev.end, 60),
+            }));
+        }
+        if (contentOffset.x < 200) {
+            setDateRange((prev) => ({
+                ...prev,
+                start: addDays(prev.start, -60),
+            }));
+        }
+    };
+
+    // ================
+    // FILTERS & SORTS
+    // ================
     const filteredTasks = Array.isArray(tasks)
         ? tasks.filter((task) => isSameDay(new Date(task.dueDate), selectedDate))
         : [];
-
     const filteredHabits = Array.isArray(habits) ? habits : [];
-
     const sortTasks = (data) => {
         if (sortMode === "dueDate") {
             return [...data].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
@@ -116,6 +145,9 @@ export default function CalendarScreen() {
         return data;
     };
 
+    // ================
+    // CRUD OPERATIONS
+    // ================
     const updateHabit = async (id, delta) => {
         try {
             const res = await fetch(`${API_URL}/api/habits/log/${id}`, {
@@ -129,7 +161,6 @@ export default function CalendarScreen() {
             console.error("Failed to update habit log:", err);
         }
     };
-
     const getPriorityStyle = (priority) => {
         switch (priority) {
             case "High":
@@ -142,28 +173,25 @@ export default function CalendarScreen() {
                 return styles.lowPriority;
         }
     };
-
     const handleDelete = async (id) => {
         const route = view === "habits" ? "habits" : "tasks";
-
         if (Platform.OS === "web") {
             const confirm = window.confirm(
                 `Are you sure you want to delete this ${route.slice(0, -1)}?`
             );
-            if (confirm) {
-                try {
-                    await fetch(`${API_URL}/api/${route}/${id}`, { method: "DELETE" });
-                    if (view === "tasks") {
-                        setTasks((prev) => prev.filter((t) => t._id !== id));
-                    } else {
-                        setHabits((prev) => prev.filter((h) => h._id !== id));
-                    }
-                } catch (err) {
-                    console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-                } finally {
-                    setSelectedTaskId(null);
-                    setSelectedHabitId(null);
+            if (!confirm) return;
+            try {
+                await fetch(`${API_URL}/api/${route}/${id}`, { method: "DELETE" });
+                if (view === "tasks") {
+                    setTasks((prev) => prev.filter((t) => t._id !== id));
+                } else {
+                    setHabits((prev) => prev.filter((h) => h._id !== id));
                 }
+            } catch (err) {
+                console.error(`Error deleting ${route.slice(0, -1)}:`, err);
+            } finally {
+                setSelectedTaskId(null);
+                setSelectedHabitId(null);
             }
         } else {
             Alert.alert(
@@ -197,7 +225,6 @@ export default function CalendarScreen() {
             );
         }
     };
-
     const handleMarkDone = async (id) => {
         try {
             await fetch(`${API_URL}/api/tasks/${id}`, {
@@ -213,38 +240,9 @@ export default function CalendarScreen() {
         }
     };
 
-    useEffect(() => {
-        if (scrollRef.current && getDates().length) {
-            const todayIndex = getDates().findIndex((date) => isSameDay(date, new Date()));
-            if (todayIndex > 0) {
-                scrollRef.current.scrollTo({
-                    x: Math.max(0, (todayIndex - 4) * 50),
-                    animated: false,
-                });
-            }
-        }
-    }, []);
-
-    const handleDateScroll = (event) => {
-        const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
-
-        // Near the right edge: extend further into the future
-        if (contentOffset.x + layoutMeasurement.width > contentSize.width - 200) {
-            setDateRange((prev) => ({
-                ...prev,
-                end: addDays(prev.end, 60),
-            }));
-        }
-
-        // Near the left edge: extend further into the past
-        if (contentOffset.x < 200) {
-            setDateRange((prev) => ({
-                ...prev,
-                start: addDays(prev.start, -60),
-            }));
-        }
-    };
-
+    // ================
+    // EMPTY STATE COMPONENT
+    // ================
     function EmptyState({ label, onPress }) {
         return (
             <View style={styles.EmptyContainer}>
@@ -256,9 +254,12 @@ export default function CalendarScreen() {
         );
     }
 
+    // ================
+    // MAIN RENDER
+    // ================
     return (
         <View style={styles.container}>
-            {/* Top Section: Date + Tabs */}
+            {/* ---- Top Calendar Section ---- */}
             <View style={styles.topSection}>
                 <View style={styles.calendarContainer}>
                     <View style={styles.topRow}>
@@ -279,7 +280,6 @@ export default function CalendarScreen() {
                             </Text>
                         </TouchableOpacity>
                     </View>
-
                     <ScrollView
                         ref={scrollRef}
                         horizontal
@@ -288,7 +288,7 @@ export default function CalendarScreen() {
                         contentContainerStyle={styles.dateRowContent}
                         onScroll={handleDateScroll}
                         scrollEventThrottle={16}>
-                        {getDates().map((date, index) => {
+                        {getDates().map((date) => {
                             const active = isSameDay(date, selectedDate);
                             return (
                                 <TouchableOpacity
@@ -310,7 +310,6 @@ export default function CalendarScreen() {
                         })}
                     </ScrollView>
                 </View>
-
                 <View
                     style={styles.tabRow}
                     onLayout={(event) => {
@@ -331,9 +330,10 @@ export default function CalendarScreen() {
                 </View>
             </View>
 
-            {/* List Section */}
+            {/* ---- List Section ---- */}
             {view === "tasks" ? (
                 <>
+                    {/* Sort + Completed Controls */}
                     <TouchableOpacity
                         onPress={() =>
                             setSortMode((prev) => (prev === "dueDate" ? "priority" : "dueDate"))
@@ -343,26 +343,26 @@ export default function CalendarScreen() {
                             Sort by: {sortMode === "dueDate" ? "Due Date" : "Priority"}
                         </Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity
                         style={styles.viewCompletedBtn}
                         onPress={() => router.push("/completed-tasks")}>
                         <Text style={styles.viewCompletedText}> View Completed</Text>
                     </TouchableOpacity>
-
+                    {/* Tasks List */}
                     <FlatList
                         style={{ flex: 1 }}
                         data={sortTasks(filteredTasks)}
                         keyExtractor={(item) => item._id}
                         renderItem={({ item }) => (
                             <View style={{ position: "relative" }}>
+                                {/* Overlay closes menu */}
                                 {selectedTaskId === item._id && (
                                     <Pressable
                                         onPress={() => setSelectedTaskId(null)}
                                         style={StyleSheet.absoluteFillObject}
                                     />
                                 )}
-
+                                {/* Task Card */}
                                 <View style={styles.taskCard}>
                                     <View style={styles.taskHeader}>
                                         <View style={styles.titleRow}>
@@ -382,7 +382,7 @@ export default function CalendarScreen() {
                                             <Text style={styles.dots}>⋯</Text>
                                         </TouchableOpacity>
                                     </View>
-
+                                    {/* Dropdown Menu */}
                                     {selectedTaskId === item._id && (
                                         <View style={styles.menu}>
                                             <TouchableOpacity
@@ -423,9 +423,8 @@ export default function CalendarScreen() {
                                             </TouchableOpacity>
                                         </View>
                                     )}
-
+                                    {/* Task Details */}
                                     <Text style={styles.taskDescription}>{item.description}</Text>
-
                                     <View style={styles.taskFooter}>
                                         <View style={styles.tagContainer}>
                                             {item.tags?.length > 0 &&
@@ -465,6 +464,9 @@ export default function CalendarScreen() {
                     />
                 </>
             ) : (
+                // ========
+                // HABITS GRID
+                // =========
                 <View style={styles.habitGrid}>
                     {Array.from({
                         length: Math.ceil(filteredHabits.length / numColumns),
@@ -487,7 +489,6 @@ export default function CalendarScreen() {
                                                     <Text style={styles.dots}>⋯</Text>
                                                 </TouchableOpacity>
                                             </View>
-
                                             {selectedHabitId === habit._id && (
                                                 <>
                                                     <Pressable
@@ -529,11 +530,16 @@ export default function CalendarScreen() {
                                                     </View>
                                                 </>
                                             )}
-
                                             <View style={styles.counterRow}>
                                                 <TouchableOpacity
-                                                    style={styles.counterBtn}
-                                                    onPress={() => updateHabit(habit._id, -1)}>
+                                                    style={[
+                                                        styles.counterBtn,
+                                                        !isToday && { opacity: 0.3 },
+                                                    ]}
+                                                    onPress={() =>
+                                                        isToday && updateHabit(habit._id, -1)
+                                                    }
+                                                    disabled={!isToday}>
                                                     <Text style={styles.counterText}>−</Text>
                                                 </TouchableOpacity>
                                                 <View>
@@ -545,8 +551,14 @@ export default function CalendarScreen() {
                                                     </Text>
                                                 </View>
                                                 <TouchableOpacity
-                                                    style={styles.counterBtn}
-                                                    onPress={() => updateHabit(habit._id, 1)}>
+                                                    style={[
+                                                        styles.counterBtn,
+                                                        !isToday && { opacity: 0.3 },
+                                                    ]}
+                                                    onPress={() =>
+                                                        isToday && updateHabit(habit._id, 1)
+                                                    }
+                                                    disabled={!isToday}>
                                                     <Text style={styles.counterText}>＋</Text>
                                                 </TouchableOpacity>
                                             </View>
@@ -577,13 +589,19 @@ export default function CalendarScreen() {
     );
 }
 
+// ===================
+// STYLES
+// ===================
 const styles = StyleSheet.create({
+    // Main container styles
     container: {
         flex: 1,
         backgroundColor: "#f9fafb",
         paddingTop: 80,
         paddingHorizontal: 16,
     },
+
+    // Calendar section styles
     topSection: {
         marginBottom: 12,
     },
@@ -599,7 +617,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         marginBottom: 10,
         width: "100%",
-        paddingHorizontal: 0,
         gap: 8,
     },
     monthLabel: {
@@ -629,7 +646,6 @@ const styles = StyleSheet.create({
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
         fontFamily: "Inter",
     },
-
     dateRow: {
         flexDirection: "row",
         marginTop: 12,
@@ -658,6 +674,11 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
+    dayText: {
+        fontFamily: "Inter",
+        fontSize: 10,
+        color: "#2196F3",
+    },
     dateNumber: {
         fontFamily: "Inter",
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
@@ -667,6 +688,8 @@ const styles = StyleSheet.create({
     activeDateText: {
         color: "#ffffff",
     },
+
+    // Tab switcher styles
     tabRow: {
         flexDirection: "row",
         backgroundColor: "#ffffff",
@@ -705,77 +728,6 @@ const styles = StyleSheet.create({
     activeTabText: {
         color: "#ffffff",
     },
-    list: {
-        flex: 1,
-    },
-    card: {
-        backgroundColor: "#ffffff",
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        elevation: 1,
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowOffset: { width: 0, height: 1 },
-        shadowRadius: 3,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#111827",
-    },
-    meta: {
-        fontSize: 14,
-        color: "#6b7280",
-        marginTop: 6,
-    },
-    empty: {
-        textAlign: "center",
-        marginTop: 32,
-        color: "#9ca3af",
-        fontSize: 14,
-    },
-    fab: {
-        position: "absolute",
-        bottom: 30,
-        right: 20,
-        backgroundColor: "#111827",
-        width: 140,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: "center",
-        alignItems: "center",
-        elevation: 4,
-    },
-    fabText: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#ffffff",
-    },
-
-    // Menu styles (3-dot dropdown)
-    menu: {
-        position: "absolute",
-        top: -10,
-        right: 10,
-        backgroundColor: "#ffffff",
-        borderRadius: 8,
-        borderColor: "#e5e7eb",
-        borderWidth: 1,
-        padding: 8,
-        elevation: 5,
-        zIndex: 20,
-        shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-    },
-    menuItem: {
-        fontSize: 12,
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        color: "#111827",
-    },
 
     // Control button styles
     viewCompletedBtn: {
@@ -807,7 +759,7 @@ const styles = StyleSheet.create({
         fontWeight: "500",
     },
 
-    // Task card specific styles
+    // Task card styles
     taskCard: {
         width: "100%",
         borderRadius: 10,
@@ -863,6 +815,8 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "flex-end",
     },
+
+    // Tag styles
     tagContainer: {
         flexDirection: "row",
         flexWrap: "wrap",
@@ -943,16 +897,6 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         alignItems: "center",
     },
-    habitTag: {
-        fontSize: 10,
-        fontWeight: "bold",
-        color: "#2196F3",
-        backgroundColor: "#E0F2FE",
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginBottom: 6,
-    },
     habitHeader: {
         flexDirection: "row",
         alignItems: "center",
@@ -967,11 +911,6 @@ const styles = StyleSheet.create({
         color: "#2196F3",
         flex: 1,
         marginRight: 8,
-    },
-    habitTagContainer: {
-        alignItems: "flex-start",
-        width: "100%",
-        marginTop: 10,
     },
     counterRow: {
         flexDirection: "row",
@@ -1003,6 +942,47 @@ const styles = StyleSheet.create({
         color: "#666",
         textAlign: "center",
     },
+    habitTagContainer: {
+        alignItems: "flex-start",
+        width: "100%",
+        marginTop: 10,
+    },
+    habitTag: {
+        fontSize: 10,
+        fontWeight: "bold",
+        color: "#2196F3",
+        backgroundColor: "#E0F2FE",
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginBottom: 6,
+    },
+
+    // Menu styles (3-dot dropdown)
+    menu: {
+        position: "absolute",
+        top: -10,
+        right: 10,
+        backgroundColor: "#ffffff",
+        borderRadius: 8,
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        padding: 8,
+        elevation: 5,
+        zIndex: 20,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    menuItem: {
+        fontSize: 12,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        color: "#111827",
+    },
+
+    // Empty state styles
     EmptyContainer: {
         alignItems: "center",
         marginTop: 40,
