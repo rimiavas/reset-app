@@ -106,6 +106,14 @@ export default function MoodTrackerScreen() {
         }, [fetchEntries])
     );
 
+    const moodScales = moods.map(() => useSharedValue(1));
+    const moodRotations = moods.map(() => useSharedValue(0));
+    const moodAnimatedStyles = moods.map((_, i) =>
+        useAnimatedStyle(() => ({
+            transform: [{ scale: moodScales[i].value }, { rotate: `${moodRotations[i].value}deg` }],
+        }))
+    );
+
     const handleSubmit = async () => {
         if (!selectedMood) return;
 
@@ -125,15 +133,35 @@ export default function MoodTrackerScreen() {
         fetchEntries();
     };
 
+    const goToToday = () => {
+        const today = new Date();
+        setSelectedDate(today);
+        const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
+        if (scrollRef.current && todayIndex > -1) {
+            scrollRef.current.scrollTo({
+                x: Math.max(0, (todayIndex - 4) * 50),
+                animated: true,
+            });
+        }
+    };
+
     return (
         <View style={styles.container}>
             {/* Fixed Top Section */}
             <View>
                 {/* Date Picker Row */}
                 <View style={styles.calendarContainer}>
-                    <View style={styles.topRow}>
-                        <Text style={styles.monthLabel}>{format(selectedDate, "MMM yyyy")}</Text>
+                    <View style={styles.monthRow}>
+                        <View style={styles.topRow}>
+                            <Text style={styles.monthLabel}>
+                                {format(selectedDate, "MMM yyyy")}
+                            </Text>
+                            <TouchableOpacity onPress={goToToday} style={styles.todayButton}>
+                                <Text style={styles.todayButtonText}>Go to Today</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
+
                     <ScrollView
                         ref={scrollRef}
                         horizontal
@@ -169,13 +197,15 @@ export default function MoodTrackerScreen() {
 
                 <View style={styles.moodRow}>
                     {moods.map((m, i) => {
-                        const scale = useSharedValue(1);
-                        const animatedStyle = useAnimatedStyle(() => ({
-                            transform: [{ scale: scale.value }],
-                        }));
+                        const scale = moodScales[i];
+                        const rotation = moodRotations[i];
+                        const animatedStyle = moodAnimatedStyles[i];
 
                         const handleSelect = () => {
-                            scale.value = withSpring(1.2, { damping: 5 }, () => {
+                            rotation.value = withTiming(15, { duration: 100 }, () => {
+                                rotation.value = withTiming(0);
+                            });
+                            scale.value = withSpring(1.4, { damping: 5 }, () => {
                                 scale.value = withSpring(1);
                             });
                             setSelectedMood(m);
@@ -183,7 +213,7 @@ export default function MoodTrackerScreen() {
 
                         const handleHoverIn = () => {
                             if (Platform.OS === "web") {
-                                scale.value = withTiming(1.1);
+                                scale.value = withTiming(1.2);
                             }
                         };
 
@@ -226,7 +256,10 @@ export default function MoodTrackerScreen() {
                     multiline
                 />
 
-                <TouchableOpacity style={styles.submit} onPress={handleSubmit}>
+                <TouchableOpacity
+                    style={[styles.submit, !selectedMood && { opacity: 0.5 }]}
+                    onPress={handleSubmit}
+                    disabled={!selectedMood}>
                     <Text style={styles.submitText}>Log Mood</Text>
                 </TouchableOpacity>
             </View>
@@ -238,22 +271,30 @@ export default function MoodTrackerScreen() {
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
                 }>
-                <View
-                    style={styles.toggleRow}
-                    onLayout={(e) => setTabWidth(e.nativeEvent.layout.width / 2)}>
-                    <Animated.View style={[styles.animatedBg, animatedBgStyle]} />
-                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setViewAll(false)}>
-                        <Text style={[styles.tabText, !viewAll && styles.activeTabText]}>
-                            Selected Date
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setViewAll(true)}>
-                        <Text style={[styles.tabText, viewAll && styles.activeTabText]}>
-                            All Time
-                        </Text>
-                    </TouchableOpacity>
+                <View style={styles.statsHeader}>
+                    <Text style={[styles.subheading, { marginTop: 0, marginBottom: 0 }]}>
+                        Mood Stats
+                    </Text>
+                    <View
+                        style={[styles.toggleRow]}
+                        onLayout={(e) => setTabWidth(e.nativeEvent.layout.width / 2)}>
+                        <Animated.View style={[styles.animatedBg, animatedBgStyle]} />
+                        <TouchableOpacity
+                            style={styles.tabTouchable}
+                            onPress={() => setViewAll(false)}>
+                            <Text style={[styles.tabText, !viewAll && styles.activeTabText]}>
+                                Selected Date
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.tabTouchable}
+                            onPress={() => setViewAll(true)}>
+                            <Text style={[styles.tabText, viewAll && styles.activeTabText]}>
+                                All Time
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-                <Text style={styles.subheading}>Mood Stats</Text>
                 <View style={styles.statsContainer}>
                     {Object.entries(
                         countMoods(
@@ -408,6 +449,28 @@ const styles = StyleSheet.create({
         fontFamily: "Rufina",
         flexShrink: 1,
     },
+    monthRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    todayButton: {
+        backgroundColor: "#E0F2FE",
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    todayButtonText: {
+        color: "#2196F3",
+        fontSize: 12,
+        fontWeight: "500",
+        fontFamily: "Inter",
+        fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
+        textAlign: "center",
+    },
+
     dateRow: {
         flexDirection: "row",
         marginTop: 12,
@@ -475,17 +538,26 @@ const styles = StyleSheet.create({
         color: "#374151",
         fontFamily: "Inter",
     },
+    statsHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginTop: 24,
+        marginBottom: 8,
+    },
     toggleRow: {
         flexDirection: "row",
         backgroundColor: "#ffffff",
         borderRadius: 10,
         marginBottom: 20,
         alignSelf: "center",
-        width: "100%",
-        height: 36,
+        padding: 0,
+        width: "80%",
+        height: 40,
         position: "relative",
         overflow: "hidden",
     },
+
     tabTouchable: {
         flex: 1,
         justifyContent: "center",

@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, Slot } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
@@ -15,6 +15,7 @@ export default function RootLayout() {
         SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
         Inter: require("../assets/fonts/Inter-VariableFont_opsz,wght.ttf"),
         "Inter-Italic": require("../assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf"),
+        "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
     });
 
     if (!fontsLoaded) return null;

@@ -109,6 +109,18 @@ export default function CalendarScreen() {
         }
     }, []);
 
+    const goToToday = () => {
+        const today = new Date();
+        setSelectedDate(today);
+        const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
+        if (scrollRef.current && todayIndex > -1) {
+            scrollRef.current.scrollTo({
+                x: Math.max(0, (todayIndex - 4) * 50), // Adjust scroll offset if needed
+                animated: true,
+            });
+        }
+    };
+
     // Dynamically extend date range when scrolling left/right
     const handleDateScroll = (event) => {
         const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
@@ -263,7 +275,14 @@ export default function CalendarScreen() {
             <View style={styles.topSection}>
                 <View style={styles.calendarContainer}>
                     <View style={styles.topRow}>
-                        <Text style={styles.monthLabel}>{format(selectedDate, "MMMM yyyy")}</Text>
+                        <View style={styles.monthRow}>
+                            <Text style={styles.monthLabel}>
+                                {format(selectedDate, "MMMM yyyy")}
+                            </Text>
+                            <TouchableOpacity onPress={goToToday} style={styles.todayButton}>
+                                <Text style={styles.todayButtonText}>Go to Today</Text>
+                            </TouchableOpacity>
+                        </View>
                         <TouchableOpacity
                             style={styles.addButton}
                             onPress={() =>
@@ -625,6 +644,27 @@ const styles = StyleSheet.create({
         color: "#111827",
         fontFamily: "Rufina",
         flexShrink: 1,
+    },
+    monthRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    todayButton: {
+        backgroundColor: "#E0F2FE",
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    todayButtonText: {
+        color: "#2196F3",
+        fontSize: 12,
+        fontWeight: "500",
+        fontFamily: "Inter",
+        fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
+        textAlign: "center",
     },
     addButton: {
         width: 96,
