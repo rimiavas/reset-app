@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
-    FlatList,
     ScrollView,
     RefreshControl,
     TextInput,
+    Dimensions,
 } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
 
@@ -30,6 +30,11 @@ export default function MoodTrackerScreen() {
     const [entries, setEntries] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [refreshing, setRefreshing] = useState(false);
+    const [dateRange, setDateRange] = useState({
+        start: addDays(new Date(), -30),
+        end: addDays(new Date(), 30),
+    });
+    const scrollRef = useRef();
 
     const fetchEntries = useCallback(() => {
         fetch(`${API_URL}/api/moods`)
@@ -41,6 +46,38 @@ export default function MoodTrackerScreen() {
         setRefreshing(true);
         fetchEntries();
         setRefreshing(false);
+    };
+
+    const getDates = () => {
+        const dates = [];
+        let current = dateRange.start;
+        while (current <= dateRange.end) {
+            dates.push(current);
+            current = addDays(current, 1);
+        }
+        return dates;
+    };
+
+    useEffect(() => {
+        if (scrollRef.current && getDates().length) {
+            const todayIndex = getDates().findIndex((d) => isSameDay(d, new Date()));
+            if (todayIndex > 0) {
+                scrollRef.current.scrollTo({
+                    x: Math.max(0, (todayIndex - 4) * 50),
+                    animated: false,
+                });
+            }
+        }
+    }, []);
+
+    const handleDateScroll = (event) => {
+        const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+        if (contentOffset.x + layoutMeasurement.width > contentSize.width - 200) {
+            setDateRange((prev) => ({ ...prev, end: addDays(prev.end, 60) }));
+        }
+        if (contentOffset.x < 200) {
+            setDateRange((prev) => ({ ...prev, start: addDays(prev.start, -60) }));
+        }
     };
 
     useFocusEffect(
@@ -73,26 +110,39 @@ export default function MoodTrackerScreen() {
             {/* Fixed Top Section */}
             <View>
                 {/* Date Picker Row */}
-                <View style={styles.dateRow}>
-                    {Array.from({ length: 11 }, (_, i) => addDays(new Date(), i - 5)).map(
-                        (date, idx) => (
-                            <TouchableOpacity
-                                key={idx}
-                                onPress={() => setSelectedDate(date)}
-                                style={[
-                                    styles.dateButton,
-                                    isSameDay(date, selectedDate) && styles.dateActive,
-                                ]}>
-                                <Text
-                                    style={[
-                                        styles.dateText,
-                                        isSameDay(date, selectedDate) && styles.dateTextActive,
-                                    ]}>
-                                    {format(date, "dd MMM")}
-                                </Text>{" "}
-                            </TouchableOpacity>
-                        )
-                    )}
+                <View style={styles.calendarContainer}>
+                    <View style={styles.topRow}>
+                        <Text style={styles.monthLabel}>{format(selectedDate, "MMM yyyy")}</Text>
+                    </View>
+                    <ScrollView
+                        ref={scrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={true}
+                        style={styles.dateRow}
+                        contentContainerStyle={styles.dateRowContent}
+                        onScroll={handleDateScroll}
+                        scrollEventThrottle={16}>
+                        {getDates().map((date) => {
+                            const active = isSameDay(date, selectedDate);
+                            return (
+                                <TouchableOpacity
+                                    key={date.toISOString()}
+                                    style={[styles.dateButton, active && styles.dateActive]}
+                                    onPress={() => setSelectedDate(date)}>
+                                    <Text style={[styles.dayText, active && styles.activeDateText]}>
+                                        {format(date, "EEE")}
+                                    </Text>
+                                    <Text
+                                        style={[
+                                            styles.dateNumber,
+                                            active && styles.activeDateText,
+                                        ]}>
+                                        {format(date, "d")}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
                 </View>
 
                 <Text style={styles.heading}>How are you feeling today?</Text>
@@ -280,27 +330,67 @@ const styles = StyleSheet.create({
         marginTop: 6,
         fontFamily: "SpaceMono",
     },
+    calendarContainer: {
+        width: "100%",
+        height: 144,
+        flexShrink: 0,
+        marginBottom: 12,
+    },
+    topRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 10,
+        width: "100%",
+        gap: 8,
+    },
+    monthLabel: {
+        fontSize: Dimensions.get("window").width < 380 ? 18 : 24,
+        fontWeight: "600",
+        color: "#111827",
+        fontFamily: "Rufina",
+        flexShrink: 1,
+    },
     dateRow: {
         flexDirection: "row",
-        marginBottom: 12,
-        flexWrap: "nowrap",
+        marginTop: 12,
+        marginBottom: 8,
+        height: 64,
+    },
+    dateRowContent: {
+        paddingHorizontal: 4,
     },
     dateButton: {
+        width: Dimensions.get("window").width < 380 ? 36 : 50,
+        height: Dimensions.get("window").width < 380 ? 36 : 50,
+        borderRadius: 10,
         backgroundColor: "#EBF2FF",
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 8,
         marginRight: 8,
+        justifyContent: "center",
+        alignItems: "center",
     },
     dateActive: {
+        width: Dimensions.get("window").width < 380 ? 46 : 64,
+        height: Dimensions.get("window").width < 380 ? 46 : 64,
+        borderRadius: 10,
         backgroundColor: "#2196F3",
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
     },
-    dateText: {
-        fontSize: 14,
+    dayText: {
+        fontSize: 10,
         color: "#2196F3",
         fontFamily: "Inter",
     },
-    dateTextActive: {
+    dateNumber: {
+        fontFamily: "Inter",
+        fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
+        fontWeight: "600",
+        color: "#2196F3",
+    },
+    activeDateText: {
         color: "#ffffff",
     },
     statsContainer: {
