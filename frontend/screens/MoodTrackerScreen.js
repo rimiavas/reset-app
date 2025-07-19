@@ -83,7 +83,13 @@ export default function MoodTrackerScreen() {
                                     styles.dateButton,
                                     isSameDay(date, selectedDate) && styles.dateActive,
                                 ]}>
-                                <Text style={styles.dateText}>{format(date, "dd MMM")}</Text>
+                                <Text
+                                    style={[
+                                        styles.dateText,
+                                        isSameDay(date, selectedDate) && styles.dateTextActive,
+                                    ]}>
+                                    {format(date, "dd MMM")}
+                                </Text>{" "}
                             </TouchableOpacity>
                         )
                     )}
@@ -113,7 +119,13 @@ export default function MoodTrackerScreen() {
                                         selectedMood === m && styles.moodSelected,
                                         animatedStyle,
                                     ]}>
-                                    <Text style={styles.moodText}>{m}</Text>
+                                    <Text
+                                        style={[
+                                            styles.moodText,
+                                            selectedMood === m && styles.moodTextSelected,
+                                        ]}>
+                                        {m}
+                                    </Text>
                                 </Animated.View>
                             </TouchableOpacity>
                         );
@@ -173,8 +185,8 @@ export default function MoodTrackerScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: 60,
-        paddingHorizontal: 16,
+        paddingTop: 80,
+        paddingHorizontal: 20,
         flex: 1,
         backgroundColor: "#f9fafb",
     },
@@ -182,12 +194,16 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: "600",
         marginBottom: 12,
+        color: "#2196F3",
+        fontFamily: "Rufina",
     },
     subheading: {
         fontSize: 16,
         fontWeight: "500",
         marginTop: 24,
         marginBottom: 8,
+        color: "#2196F3",
+        fontFamily: "Rufina",
     },
     moodRow: {
         flexDirection: "row",
@@ -200,12 +216,19 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: "#e5e7eb",
     },
+
     moodSelected: {
-        backgroundColor: "#d1d5db",
+        backgroundColor: "#2196F3",
     },
     moodText: {
         fontSize: 24,
+        color: "#2196F3",
+        fontFamily: "Rufina",
     },
+    moodTextSelected: {
+        color: "#ffffff",
+    },
+
     input: {
         borderColor: "#d1d5db",
         borderWidth: 1,
@@ -214,9 +237,10 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         minHeight: 60,
         textAlignVertical: "top",
+        fontFamily: "Inter",
     },
     submit: {
-        backgroundColor: "#111827",
+        backgroundColor: "#2196F3",
         padding: 12,
         borderRadius: 8,
         alignItems: "center",
@@ -225,26 +249,36 @@ const styles = StyleSheet.create({
     submitText: {
         color: "#fff",
         fontWeight: "600",
+        fontFamily: "Inter",
     },
     entry: {
-        backgroundColor: "#fff",
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 10,
-        elevation: 1,
+        backgroundColor: "#FFF",
+        padding: 16,
+        borderRadius: 10,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: "rgba(0, 110, 233, 0.06)",
+        shadowColor: "#006EE9",
+        shadowOpacity: 0.02,
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 20,
     },
     entryMood: {
         fontSize: 22,
+        color: "#2196F3",
+        fontFamily: "Rufina",
     },
     entryNote: {
         marginTop: 4,
         fontSize: 14,
-        color: "#374151",
+        color: "#4A4646",
+        fontFamily: "Inter",
     },
     entryDate: {
         fontSize: 12,
         color: "#6b7280",
         marginTop: 6,
+        fontFamily: "SpaceMono",
     },
     dateRow: {
         flexDirection: "row",
@@ -252,18 +286,22 @@ const styles = StyleSheet.create({
         flexWrap: "nowrap",
     },
     dateButton: {
-        backgroundColor: "#e5e7eb",
+        backgroundColor: "#EBF2FF",
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 8,
         marginRight: 8,
     },
     dateActive: {
-        backgroundColor: "#d1d5db",
+        backgroundColor: "#2196F3",
     },
     dateText: {
         fontSize: 14,
-        color: "#111827",
+        color: "#2196F3",
+        fontFamily: "Inter",
+    },
+    dateTextActive: {
+        color: "#ffffff",
     },
     statsContainer: {
         marginBottom: 20,
@@ -276,6 +314,8 @@ const styles = StyleSheet.create({
     statMood: {
         fontSize: 20,
         width: 40,
+        fontFamily: "Rufina",
+        color: "#2196F3",
     },
     statBar: {
         height: 10,
@@ -286,5 +326,6 @@ const styles = StyleSheet.create({
     statCount: {
         fontSize: 14,
         color: "#374151",
+        fontFamily: "Inter",
     },
 });
