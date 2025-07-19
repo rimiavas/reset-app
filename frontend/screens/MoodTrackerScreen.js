@@ -8,8 +8,16 @@ import {
     RefreshControl,
     TextInput,
     Dimensions,
+    Pressable,
+    Platform,
 } from "react-native";
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withSpring,
+    withTiming,
+    interpolate,
+} from "react-native-reanimated";
 
 import { useFocusEffect } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
@@ -30,6 +38,9 @@ export default function MoodTrackerScreen() {
     const [entries, setEntries] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [refreshing, setRefreshing] = useState(false);
+    const [viewAll, setViewAll] = useState(false);
+    const [tabWidth, setTabWidth] = useState(0);
+    const tabTranslate = useSharedValue(0);
     const [dateRange, setDateRange] = useState({
         start: addDays(new Date(), -30),
         end: addDays(new Date(), 30),
@@ -70,6 +81,15 @@ export default function MoodTrackerScreen() {
         }
     }, []);
 
+    useEffect(() => {
+        tabTranslate.value = withTiming(viewAll ? 1 : 0, { duration: 300 });
+    }, [viewAll]);
+
+    const animatedBgStyle = useAnimatedStyle(() => {
+        const translateX = interpolate(tabTranslate.value, [0, 1], [0, tabWidth]);
+        return { transform: [{ translateX }] };
+    });
+
     const handleDateScroll = (event) => {
         const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
         if (contentOffset.x + layoutMeasurement.width > contentSize.width - 200) {
@@ -102,7 +122,7 @@ export default function MoodTrackerScreen() {
 
         setSelectedMood("");
         setNote("");
-        fetchEntries(); // refresh list
+        fetchEntries();
     };
 
     return (
@@ -161,8 +181,24 @@ export default function MoodTrackerScreen() {
                             setSelectedMood(m);
                         };
 
+                        const handleHoverIn = () => {
+                            if (Platform.OS === "web") {
+                                scale.value = withTiming(1.1);
+                            }
+                        };
+
+                        const handleHoverOut = () => {
+                            if (Platform.OS === "web") {
+                                scale.value = withTiming(1);
+                            }
+                        };
+
                         return (
-                            <TouchableOpacity key={i} onPress={handleSelect}>
+                            <Pressable
+                                key={i}
+                                onPress={handleSelect}
+                                onHoverIn={handleHoverIn}
+                                onHoverOut={handleHoverOut}>
                                 <Animated.View
                                     style={[
                                         styles.moodButton,
@@ -177,7 +213,7 @@ export default function MoodTrackerScreen() {
                                         {m}
                                     </Text>
                                 </Animated.View>
-                            </TouchableOpacity>
+                            </Pressable>
                         );
                     })}
                 </View>
@@ -202,10 +238,29 @@ export default function MoodTrackerScreen() {
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
                 }>
+                <View
+                    style={styles.toggleRow}
+                    onLayout={(e) => setTabWidth(e.nativeEvent.layout.width / 2)}>
+                    <Animated.View style={[styles.animatedBg, animatedBgStyle]} />
+                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setViewAll(false)}>
+                        <Text style={[styles.tabText, !viewAll && styles.activeTabText]}>
+                            Selected Date
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setViewAll(true)}>
+                        <Text style={[styles.tabText, viewAll && styles.activeTabText]}>
+                            All Time
+                        </Text>
+                    </TouchableOpacity>
+                </View>
                 <Text style={styles.subheading}>Mood Stats</Text>
                 <View style={styles.statsContainer}>
                     {Object.entries(
-                        countMoods(entries.filter((e) => isSameDay(new Date(e.date), selectedDate)))
+                        countMoods(
+                            entries.filter((e) =>
+                                viewAll ? true : isSameDay(new Date(e.date), selectedDate)
+                            )
+                        )
                     ).map(([mood, count], i) => (
                         <View key={i} style={styles.statRow}>
                             <Text style={styles.statMood}>{mood}</Text>
@@ -217,7 +272,7 @@ export default function MoodTrackerScreen() {
 
                 <Text style={styles.subheading}>Past Entries</Text>
                 {entries
-                    .filter((e) => isSameDay(new Date(e.date), selectedDate))
+                    .filter((e) => (viewAll ? true : isSameDay(new Date(e.date), selectedDate)))
                     .reverse()
                     .map((item) => (
                         <View key={item._id} style={styles.entry}>
@@ -246,6 +301,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         color: "#2196F3",
         fontFamily: "Rufina",
+        textAlign: "center",
     },
     subheading: {
         fontSize: 16,
@@ -259,6 +315,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         marginBottom: 16,
         flexWrap: "wrap",
+        justifyContent: "center",
     },
     moodButton: {
         padding: 10,
@@ -417,5 +474,43 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#374151",
         fontFamily: "Inter",
+    },
+    toggleRow: {
+        flexDirection: "row",
+        backgroundColor: "#ffffff",
+        borderRadius: 10,
+        marginBottom: 20,
+        alignSelf: "center",
+        width: "100%",
+        height: 36,
+        position: "relative",
+        overflow: "hidden",
+    },
+    tabTouchable: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1,
+    },
+    animatedBg: {
+        position: "absolute",
+        height: "100%",
+        width: "50%",
+        backgroundColor: "#2196F3",
+        borderRadius: 10,
+        top: 0,
+        left: 0,
+        zIndex: 0,
+    },
+    tabText: {
+        fontFamily: "Inter",
+        fontSize: 15,
+        fontWeight: "500",
+        letterSpacing: 0.6,
+        textTransform: "capitalize",
+        color: "#90A5B4",
+    },
+    activeTabText: {
+        color: "#ffffff",
     },
 });
