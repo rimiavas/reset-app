@@ -10,6 +10,10 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
+import taskCardStyles from "../constants/taskCardStyles";
+import menuStyles from "../constants/menuStyles";
+import emptyStateStyles from "../constants/emptyStateStyles";
+import buttonStyles from "@/constants/buttonStyles";
 
 export default function CompletedTasksScreen() {
     // =================
@@ -192,6 +196,11 @@ export default function CompletedTasksScreen() {
 // =================
 
 const styles = StyleSheet.create({
+    ...taskCardStyles,
+    ...menuStyles,
+    ...emptyStateStyles,
+    ...buttonStyles,
+
     // Main container styles
     container: {
         flex: 1,
@@ -212,161 +221,5 @@ const styles = StyleSheet.create({
         color: "#2196F3",
         marginBottom: 20,
         textAlign: "center",
-    },
-
-    // Task card styles
-    taskCard: {
-        width: "100%",
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: "rgba(0, 110, 233, 0.06)",
-        backgroundColor: "#FFF",
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#006EE9",
-        shadowOpacity: 0.02,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 20,
-        flexShrink: 1,
-        position: "relative",
-    },
-    taskHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 8,
-    },
-    titleRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-        marginBottom: 4,
-    },
-    taskTitle: {
-        color: "#2196F3",
-        fontFamily: "Inter",
-        fontSize: 15,
-        fontWeight: "500",
-        letterSpacing: 0.6,
-        textTransform: "capitalize",
-        width: "100%",
-    },
-    dots: {
-        fontSize: 20,
-        color: "#ABCEF5",
-        lineHeight: 5,
-    },
-    taskDescription: {
-        fontFamily: "Poppins",
-        fontSize: 10,
-        fontWeight: "400",
-        color: "#4A4646",
-        textTransform: "lowercase",
-        marginBottom: 8,
-        flexWrap: "wrap",
-    },
-    taskFooter: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-end",
-    },
-    tagContainer: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 4,
-    },
-    tag: {
-        fontFamily: "SpaceMono",
-        fontSize: 10,
-        fontWeight: "400",
-        color: "#2196F3",
-        backgroundColor: "#E0F2FE",
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginRight: 4,
-        marginBottom: 4,
-    },
-    taskTimeline: {
-        fontFamily: "Poppins",
-        fontSize: 10,
-        fontWeight: "400",
-        color: "#0668E5",
-        textAlign: "right",
-    },
-
-    // Priority badge styles
-    priorityBadge: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    priorityBadgeText: {
-        fontFamily: "Poppins",
-        fontSize: 10,
-        color: "#fff",
-        fontWeight: "bold",
-    },
-    priorityHigh: {
-        backgroundColor: "#EF4444",
-    },
-    priorityMedium: {
-        backgroundColor: "#F97316",
-    },
-    priorityLow: {
-        backgroundColor: "#0EA5E9",
-    },
-
-    // Dropdown menu styles
-    menu: {
-        position: "absolute",
-        top: -10,
-        right: 10,
-        backgroundColor: "#ffffff",
-        borderRadius: 8,
-        borderColor: "#e5e7eb",
-        borderWidth: 1,
-        padding: 8,
-        elevation: 5,
-        zIndex: 20,
-        shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-    },
-    menuItem: {
-        fontFamily: "Inter",
-        fontSize: 12,
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        color: "#111827",
-    },
-
-    // Empty state styles
-    empty: {
-        fontFamily: "Inter",
-        fontSize: 14,
-        color: "#94a3b8",
-        textAlign: "center",
-        marginTop: 40,
-    },
-
-    // Back button styles
-    backBtn: {
-        marginBottom: 20,
-        marginTop: 10,
-        alignSelf: "flex-start",
-        backgroundColor: "#E0F2FE",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 8,
-    },
-    backText: {
-        fontFamily: "Inter",
-        fontSize: 14,
-        fontWeight: "500",
-        color: "#2196F3",
     },
 });

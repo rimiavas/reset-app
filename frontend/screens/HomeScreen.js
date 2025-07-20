@@ -21,6 +21,12 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import Logo from "../assets/images/Reset.png";
+import tabStyles from "../constants/tabStyles";
+import taskCardStyles from "../constants/taskCardStyles";
+import buttonStyles from "../constants/buttonStyles";
+import habitStyles from "../constants/habitStyles";
+import emptyStateStyles from "../constants/emptyStateStyles";
+import menuStyles from "../constants/menuStyles";
 
 export default function HomeScreen() {
     // =================
@@ -631,6 +637,13 @@ export default function HomeScreen() {
 // =================
 
 const styles = StyleSheet.create({
+    ...tabStyles,
+    ...taskCardStyles,
+    ...buttonStyles,
+    ...habitStyles,
+    ...emptyStateStyles,
+    ...menuStyles,
+
     // Main container styles
     container: {
         paddingHorizontal: 20,
@@ -651,7 +664,7 @@ const styles = StyleSheet.create({
     quoteBox: {
         backgroundColor: "#ffffff",
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 10,
         marginBottom: 20,
         elevation: 1,
         shadowColor: "#000",
@@ -670,9 +683,7 @@ const styles = StyleSheet.create({
         color: "#54D2E1",
         fontFamily: "Rufina",
         fontSize: 20,
-        fontWeight: "700",
         letterSpacing: 0.52,
-        textTransform: "capitalize",
     },
     quoteText: {
         color: "#000000",
@@ -681,365 +692,5 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         letterSpacing: 0.52,
         textTransform: "capitalize",
-    },
-
-    // Tab switcher styles
-    tabRow: {
-        flexDirection: "row",
-        backgroundColor: "#ffffff",
-        borderRadius: 10,
-        marginBottom: 20,
-        alignSelf: "center",
-        width: "100%",
-        height: 40,
-        position: "relative",
-        overflow: "hidden",
-    },
-    tabTouchable: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 1,
-    },
-    animatedBg: {
-        position: "absolute",
-        height: "100%",
-        width: "50%",
-        backgroundColor: "#2196F3",
-        borderRadius: 10,
-        top: 0,
-        left: 0,
-        zIndex: 0,
-    },
-    tabText: {
-        fontFamily: "Inter",
-        fontSize: 15,
-        fontWeight: "500",
-        letterSpacing: 0.6,
-        textTransform: "capitalize",
-        color: "#90A5B4",
-    },
-    activeTabText: {
-        fontFamily: "Inter",
-        color: "#ffffff",
-    },
-
-    // Generic card styles
-    card: {
-        backgroundColor: "#ffffff",
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 0, height: 1 },
-        shadowRadius: 4,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#111827",
-    },
-    empty: {
-        fontSize: 14,
-        color: "#94a3b8",
-        textAlign: "center",
-        marginTop: 40,
-    },
-
-    // Task card specific styles
-    taskCard: {
-        width: "100%",
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: "rgba(0, 110, 233, 0.06)",
-        backgroundColor: "#FFF",
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#006EE9",
-        shadowOpacity: 0.02,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 20,
-        flexShrink: 1,
-        position: "relative",
-    },
-    taskHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 8,
-    },
-    taskTitle: {
-        color: "#2196F3",
-        fontFamily: "Inter",
-        fontSize: 15,
-        fontWeight: "500",
-        letterSpacing: 0.6,
-        textTransform: "capitalize",
-        width: "100%",
-    },
-    dots: {
-        fontSize: 20,
-        color: "#ABCEF5",
-        lineHeight: 5,
-    },
-    taskDescription: {
-        fontFamily: "Poppins",
-        fontSize: 10,
-        fontWeight: "400",
-        letterSpacing: 0.4,
-        color: "#4A4646",
-        textTransform: "lowercase",
-        marginBottom: 8,
-        flexWrap: "wrap",
-    },
-    taskTimeline: {
-        fontFamily: "Poppins",
-        fontSize: 10,
-        fontWeight: "400",
-        color: "#0668E5",
-        textAlign: "right",
-    },
-    taskFooter: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-end",
-    },
-
-    // Tag styles
-    tagContainer: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 4,
-    },
-    tag: {
-        fontFamily: "SpaceMono",
-        fontSize: 10,
-        fontWeight: "400",
-        color: "#2196F3",
-        backgroundColor: "#E0F2FE",
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginRight: 4,
-        marginBottom: 4,
-    },
-
-    // Menu styles (3-dot dropdown)
-    menu: {
-        position: "absolute",
-        top: -10,
-        right: 10,
-        backgroundColor: "#ffffff",
-        borderRadius: 8,
-        borderColor: "#e5e7eb",
-        borderWidth: 1,
-        padding: 8,
-        elevation: 5,
-        zIndex: 20,
-        shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-    },
-    menuItem: {
-        fontFamily: "Inter",
-        fontSize: 12,
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        color: "#111827",
-    },
-
-    // Control button styles
-    viewCompletedBtn: {
-        position: "absolute",
-        bottom: 10,
-        left: 20,
-        backgroundColor: "#E0F2FE",
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-        borderRadius: 8,
-        zIndex: 5,
-    },
-    viewCompletedText: {
-        fontFamily: "Inter",
-        color: "#2196F3",
-        fontSize: 12,
-        fontWeight: "500",
-    },
-    sortButton: {
-        alignSelf: "flex-end",
-        marginBottom: 8,
-        backgroundColor: "#E0F2FE",
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-    },
-    sortButtonText: {
-        fontFamily: "Inter",
-        color: "#2196F3",
-        fontSize: 12,
-        fontWeight: "500",
-    },
-
-    // Priority badge styles
-    titleRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-        marginBottom: 4,
-    },
-    priorityBadge: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    priorityBadgeText: {
-        fontFamily: "Inter",
-        fontSize: 10,
-        color: "#fff",
-        fontWeight: "bold",
-    },
-    priorityHigh: {
-        backgroundColor: "#EF4444",
-    },
-    priorityMedium: {
-        backgroundColor: "#F97316",
-    },
-    priorityLow: {
-        backgroundColor: "#0EA5E9",
-    },
-    highPriority: {
-        color: "#EF4444",
-    },
-    mediumPriority: {
-        color: "#F97316",
-    },
-    lowPriority: {
-        color: "#0EA5E9",
-    },
-
-    // Habit tracker specific styles
-    habitGrid: {
-        width: "100%",
-    },
-
-    habitRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 16,
-    },
-
-    habitCard: {
-        flex: 1,
-        marginHorizontal: 4,
-        padding: 12,
-        backgroundColor: "#ffffff",
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: "#E0F2FE",
-        shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 6,
-        alignItems: "center",
-    },
-
-    habitTag: {
-        fontFamily: "SpaceMono",
-        fontSize: 10,
-        fontWeight: "bold",
-        color: "#2196F3",
-        backgroundColor: "#E0F2FE",
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginBottom: 6,
-    },
-    habitHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "100%",
-        marginBottom: 10,
-    },
-    habitTitle: {
-        color: "#2196F3",
-        fontFamily: "Inter",
-        fontSize: 15,
-        fontWeight: "500",
-        letterSpacing: 0.6,
-        textTransform: "capitalize",
-        width: "100%",
-    },
-    habitTagContainer: {
-        alignItems: "flex-start",
-        width: "100%",
-        marginTop: 10,
-    },
-
-    // Counter controls for habit tracking
-    counterRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        margin: 10,
-    },
-
-    counterBtn: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: "#E0F2FE",
-        justifyContent: "center",
-        alignItems: "center",
-        marginHorizontal: 8,
-    },
-
-    counterText: {
-        fontFamily: "Poppins",
-        fontSize: 16,
-        fontWeight: "bold",
-        color: "#2196F3",
-    },
-
-    counterValue: {
-        fontFamily: "Poppins",
-        fontSize: 12,
-        fontWeight: "bold",
-        color: "#333",
-        textAlign: "center",
-    },
-
-    unitText: {
-        fontFamily: "Poppins",
-        fontSize: 10,
-        color: "#666",
-        textAlign: "center",
-    },
-
-    EmptyContainer: {
-        alignItems: "center",
-        marginTop: 40,
-    },
-    EmptyText: {
-        fontFamily: "Inter",
-        color: "#94a3b8",
-        fontSize: 14,
-        marginBottom: 14,
-    },
-    EmptyButton: {
-        backgroundColor: "#2196F3",
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 8,
-    },
-    EmptyButtonText: {
-        fontFamily: "Inter",
-        color: "#fff",
-        fontWeight: "600",
-        fontSize: 15,
     },
 });

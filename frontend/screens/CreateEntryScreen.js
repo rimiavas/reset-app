@@ -17,6 +17,8 @@ import Animated, {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../constants/constants";
+import buttonStyles from "../constants/buttonStyles";
+import tabStyles from "../constants/tabStyles";
 
 // =================
 // FORMATS DATE+INPUT
@@ -423,6 +425,9 @@ export default function CreateEntryScreen() {
 // STYLES
 // ================
 const styles = StyleSheet.create({
+    ...buttonStyles,
+    ...tabStyles,
+
     // Main container styles
     container: {
         flex: 1,
@@ -444,59 +449,6 @@ const styles = StyleSheet.create({
         fontFamily: "Poppins-SemiBold",
         flex: 1,
         textAlign: "center",
-    },
-    backBtn: {
-        backgroundColor: "#E0F2FE",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 8,
-        marginRight: 8,
-    },
-    backText: {
-        fontSize: 14,
-        fontWeight: "500",
-        color: "#2196F3",
-    },
-
-    // Toggle
-    tabRow: {
-        flexDirection: "row",
-        backgroundColor: "#ffffff",
-        borderRadius: 10,
-        marginBottom: 20,
-        alignSelf: "center",
-        width: "100%",
-        height: 40,
-        position: "relative",
-        overflow: "hidden",
-    },
-    tabTouchable: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 1,
-    },
-    animatedBg: {
-        position: "absolute",
-        height: "100%",
-        width: "50%",
-        backgroundColor: "#2196F3",
-        borderRadius: 10,
-        top: 0,
-        left: 0,
-        zIndex: 0,
-    },
-    tabText: {
-        fontFamily: "Inter",
-        fontSize: 15,
-        fontWeight: "500",
-        letterSpacing: 0.6,
-        textTransform: "capitalize",
-        color: "#90A5B4",
-    },
-    activeTabText: {
-        fontFamily: "Inter",
-        color: "#ffffff",
     },
 
     // Inputs
