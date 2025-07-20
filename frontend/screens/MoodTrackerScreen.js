@@ -19,19 +19,11 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import calendarStyles from "../constants/StyleSheet/calendarStyles";
-
 import { useFocusEffect } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
-
-const moods = ["😊", "😐", "😢", "😠", "😌", "😴"];
-const countMoods = (entriesForDay) => {
-    const counts = {};
-    moods.forEach((mood) => {
-        counts[mood] = entriesForDay.filter((e) => e.mood === mood).length;
-    });
-    return counts;
-};
+import MoodEntriesList from "../components/Lists/MoodList";
+import { moods, countMoods } from "../constants/utility/moodUtils";
 
 export default function MoodTrackerScreen() {
     const [selectedMood, setSelectedMood] = useState("");
@@ -313,18 +305,7 @@ export default function MoodTrackerScreen() {
                 </View>
 
                 <Text style={styles.subheading}>Past Entries</Text>
-                {entries
-                    .filter((e) => (viewAll ? true : isSameDay(new Date(e.date), selectedDate)))
-                    .reverse()
-                    .map((item) => (
-                        <View key={item._id} style={styles.entry}>
-                            <Text style={styles.entryMood}>{item.mood}</Text>
-                            <Text style={styles.entryNote}>{item.note}</Text>
-                            <Text style={styles.entryDate}>
-                                {format(new Date(item.date), "dd MMM yyyy, HH:mm")}
-                            </Text>
-                        </View>
-                    ))}
+                <MoodEntriesList entries={entries} selectedDate={selectedDate} viewAll={viewAll} />
             </ScrollView>
         </View>
     );

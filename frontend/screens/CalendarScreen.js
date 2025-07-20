@@ -4,14 +4,13 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    FlatList,
     ScrollView,
-    RefreshControl,
     Pressable,
     Platform,
     Alert,
     Dimensions,
 } from "react-native";
+import TaskList from "../components/Lists/TaskList";
 import { useFocusEffect, useRouter } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
@@ -39,7 +38,7 @@ export default function CalendarScreen() {
     const [tasks, setTasks] = useState([]);
     const [habits, setHabits] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
-    const [selectedTaskId, setSelectedTaskId] = useState(null);
+
     const [selectedHabitId, setSelectedHabitId] = useState(null);
     const [sortMode, setSortMode] = useState("dueDate");
     const isToday = isSameDay(selectedDate, new Date());
@@ -47,7 +46,7 @@ export default function CalendarScreen() {
         Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
     const router = useRouter();
 
-    // Animation for tab switcher
+    // Animation for tab
     const [tabWidth, setTabWidth] = useState(0);
     const tabTranslate = useSharedValue(0);
 
@@ -187,7 +186,6 @@ export default function CalendarScreen() {
             } catch (err) {
                 console.error(`Error deleting ${route.slice(0, -1)}:`, err);
             } finally {
-                setSelectedTaskId(null);
                 setSelectedHabitId(null);
             }
         } else {
@@ -212,7 +210,6 @@ export default function CalendarScreen() {
                             } catch (err) {
                                 console.error(`Error deleting ${route.slice(0, -1)}:`, err);
                             } finally {
-                                setSelectedTaskId(null);
                                 setSelectedHabitId(null);
                             }
                         },
@@ -232,8 +229,6 @@ export default function CalendarScreen() {
             setTasks((prev) => prev.filter((task) => task._id !== id));
         } catch (err) {
             console.error("Error marking task done:", err);
-        } finally {
-            setSelectedTaskId(null);
         }
     };
 
@@ -353,106 +348,34 @@ export default function CalendarScreen() {
                         <Text style={styles.viewCompletedText}> View Completed</Text>
                     </TouchableOpacity>
                     {/* Tasks List */}
-                    <FlatList
-                        style={{ flex: 1 }}
-                        data={sortTasks(filteredTasks, sortMode)}
-                        keyExtractor={(item) => item._id}
-                        renderItem={({ item }) => (
-                            <View style={{ position: "relative" }}>
-                                {/* Overlay closes menu */}
-                                {selectedTaskId === item._id && (
-                                    <Pressable
-                                        onPress={() => setSelectedTaskId(null)}
-                                        style={StyleSheet.absoluteFillObject}
-                                    />
-                                )}
-                                {/* Task Card */}
-                                <View style={styles.taskCard}>
-                                    <View style={styles.taskHeader}>
-                                        <View style={styles.titleRow}>
-                                            <View
-                                                style={[
-                                                    styles.priorityBadge,
-                                                    styles[`priority${item.priority}`],
-                                                ]}>
-                                                <Text style={styles.priorityBadgeText}>
-                                                    {item.priority?.[0] || "M"}
-                                                </Text>
-                                            </View>
-                                            <Text style={styles.taskTitle}>{item.title}</Text>
-                                        </View>
-                                        <TouchableOpacity
-                                            onPress={() => setSelectedTaskId(item._id)}>
-                                            <Text style={styles.dots}>⋯</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    {/* Dropdown Menu */}
-                                    {selectedTaskId === item._id && (
-                                        <View style={styles.menu}>
-                                            <TouchableOpacity
-                                                onPress={() => handleMarkDone(item._id)}>
-                                                <Text style={styles.menuItem}>✅ Mark as Done</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity
-                                                onPress={() =>
-                                                    router.push({
-                                                        pathname: "/create-entry",
-                                                        params: {
-                                                            mode: "edit",
-                                                            type: "task",
-                                                            id: item._id,
-                                                            title: item.title,
-                                                            description: item.description || "",
-                                                            dueDate: item.dueDate,
-                                                            reminder: item.reminder
-                                                                ? new Date(
-                                                                      item.reminder
-                                                                  ).toISOString()
-                                                                : "",
-                                                            tags: Array.isArray(item.tags)
-                                                                ? item.tags.join(",")
-                                                                : "",
-                                                            priority: item.priority || "Medium",
-                                                            target: item.target?.toString() || "",
-                                                            unit: item.unit || "",
-                                                            habitType: item.type || "",
-                                                        },
-                                                    })
-                                                }>
-                                                <Text style={styles.menuItem}>✏️ Edit</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity
-                                                onPress={() => handleDelete(item._id)}>
-                                                <Text style={styles.menuItem}>🗑️ Delete</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-                                    {/* Task Details */}
-                                    <Text style={styles.taskDescription}>{item.description}</Text>
-                                    <View style={styles.taskFooter}>
-                                        <View style={styles.tagContainer}>
-                                            {item.tags?.length > 0 &&
-                                                item.tags.map((tag, index) => (
-                                                    <Text key={index} style={styles.tag}>
-                                                        #{tag}
-                                                    </Text>
-                                                ))}
-                                        </View>
-                                        <Text
-                                            style={[
-                                                styles.taskTimeline,
-                                                getPriorityStyle(item.priority),
-                                            ]}>
-                                            {new Date(item.createdAt).toLocaleDateString()} →{" "}
-                                            {new Date(item.dueDate).toLocaleDateString()}
-                                        </Text>
-                                    </View>
-                                </View>
-                            </View>
-                        )}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                    <TaskList
+                        tasks={filteredTasks}
+                        sortMode={sortMode}
+                        onMarkDone={handleMarkDone}
+                        onDelete={handleDelete}
+                        onEdit={(item) =>
+                            router.push({
+                                pathname: "/create-entry",
+                                params: {
+                                    mode: "edit",
+                                    type: "task",
+                                    id: item._id,
+                                    title: item.title,
+                                    description: item.description || "",
+                                    dueDate: item.dueDate,
+                                    reminder: item.reminder
+                                        ? new Date(item.reminder).toISOString()
+                                        : "",
+                                    tags: Array.isArray(item.tags) ? item.tags.join(",") : "",
+                                    priority: item.priority || "Medium",
+                                    target: item.target?.toString() || "",
+                                    unit: item.unit || "",
+                                    habitType: item.type || "",
+                                },
+                            })
                         }
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
                         ListEmptyComponent={
                             <EmptyState
                                 label="Task"
@@ -464,7 +387,6 @@ export default function CalendarScreen() {
                                 }
                             />
                         }
-                        contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
                     />
                 </>
             ) : (

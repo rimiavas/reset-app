@@ -1,13 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    RefreshControl,
-    TouchableOpacity,
-    Pressable,
-} from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import TaskList from "../components/Lists/TaskList";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
 import taskCardStyles from "../constants/StyleSheet/taskCardStyles";
@@ -25,9 +18,6 @@ export default function CompletedTasksScreen() {
 
     // Controls the pull-to-refresh loading state
     const [refreshing, setRefreshing] = useState(false);
-
-    // Track which task has its 3-dot menu open
-    const [selectedTaskId, setSelectedTaskId] = useState(null);
 
     // Router instance for navigation
     const router = useRouter();
@@ -74,9 +64,6 @@ export default function CompletedTasksScreen() {
             fetchTasks();
         } catch (err) {
             console.error("Error undoing completion:", err);
-        } finally {
-            // Close the menu after action
-            setSelectedTaskId(null);
         }
     };
 
@@ -101,87 +88,12 @@ export default function CompletedTasksScreen() {
             {/* =================
                 COMPLETED TASKS LIST 
                 ================= */}
-            <FlatList
-                data={tasks}
-                keyExtractor={(item) => item._id}
-                /* Pull-to-refresh functionality */
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-                }
-                renderItem={({ item }) => (
-                    <View style={{ position: "relative" }}>
-                        {/* Overlay to close menu when tapping outside */}
-                        {selectedTaskId === item._id && (
-                            <Pressable
-                                onPress={() => setSelectedTaskId(null)}
-                                style={StyleSheet.absoluteFillObject}
-                            />
-                        )}
-
-                        {/* Task Card - now styled like HomeScreen */}
-                        <View style={styles.taskCard}>
-                            {/* Task Header: Priority badge, Title, Menu Button */}
-                            <View style={styles.taskHeader}>
-                                <View style={styles.titleRow}>
-                                    {/* Priority Badge (HomeScreen style) */}
-                                    <View
-                                        style={[
-                                            styles.priorityBadge,
-                                            styles[`priority${item.priority}`],
-                                        ]}>
-                                        <Text style={styles.priorityBadgeText}>
-                                            {item.priority?.[0] || "M"}
-                                        </Text>
-                                    </View>
-                                    <Text style={styles.taskTitle}>{item.title}</Text>
-                                </View>
-
-                                {/* Three-dot Menu Button */}
-                                <TouchableOpacity onPress={() => setSelectedTaskId(item._id)}>
-                                    <Text style={styles.dots}>⋯</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Dropdown Menu (Undo Complete) */}
-                            {selectedTaskId === item._id && (
-                                <View style={styles.menu}>
-                                    <TouchableOpacity onPress={() => handleUndo(item._id)}>
-                                        <Text style={styles.menuItem}>↩️ Undo Complete</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-
-                            {/* Task Description */}
-                            <Text style={styles.taskDescription}>{item.description}</Text>
-
-                            {/* Tag List + Timeline (coloured by priority) */}
-                            <View style={styles.taskFooter}>
-                                {/* Tags */}
-                                <View style={styles.tagContainer}>
-                                    {item.tags?.length > 0 &&
-                                        item.tags.map((tag, idx) => (
-                                            <Text key={idx} style={styles.tag}>
-                                                #{tag}
-                                            </Text>
-                                        ))}
-                                </View>
-                                {/* Timeline with priority colour */}
-                                <Text
-                                    style={[
-                                        styles.taskTimeline,
-                                        item.priority === "High"
-                                            ? { color: "#EF4444" }
-                                            : item.priority === "Medium"
-                                            ? { color: "#F97316" }
-                                            : { color: "#0EA5E9" },
-                                    ]}>
-                                    {new Date(item.createdAt).toLocaleDateString()} →{" "}
-                                    {new Date(item.dueDate).toLocaleDateString()}
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
-                )}
+            <TaskList
+                tasks={tasks}
+                onMarkDone={handleUndo}
+                markDoneLabel="↩️ Undo Complete"
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
                 /* Show empty state when no completed tasks exist */
                 ListEmptyComponent={<Text style={styles.empty}>No completed tasks yet.</Text>}
                 /* Add bottom padding for navigation and scrolling */

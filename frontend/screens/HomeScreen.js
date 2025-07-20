@@ -4,14 +4,13 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    FlatList,
-    RefreshControl,
     Pressable,
     Platform,
     Alert,
     Dimensions,
     Image,
 } from "react-native";
+import TaskList from "../components/Lists/TaskList";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
 import Animated, {
@@ -51,7 +50,6 @@ export default function HomeScreen() {
     const [tabWidth, setTabWidth] = useState(0);
 
     // Track which task/habit has its 3-dot menu open
-    const [selectedTaskId, setSelectedTaskId] = useState(null);
     const [selectedHabitId, setSelectedHabitId] = useState(null);
 
     // Router instance for navigation
@@ -161,8 +159,6 @@ export default function HomeScreen() {
                     }
                 } catch (err) {
                     console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-                } finally {
-                    setSelectedTaskId(null);
                 }
             }
         } else {
@@ -189,8 +185,6 @@ export default function HomeScreen() {
                                 }
                             } catch (err) {
                                 console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-                            } finally {
-                                setSelectedTaskId(null);
                             }
                         },
                     },
@@ -213,8 +207,6 @@ export default function HomeScreen() {
             setTasks((prev) => prev.filter((task) => task._id !== id));
         } catch (err) {
             console.error("Error marking task done:", err);
-        } finally {
-            setSelectedTaskId(null);
         }
     };
 
@@ -335,112 +327,34 @@ export default function HomeScreen() {
                 TASKS LIST VIEW
                 ================= */}
             {view === "tasks" ? (
-                <FlatList
-                    style={{ flex: 1 }}
-                    data={sortTasks(tasks, sortMode)}
-                    keyExtractor={(item) => item._id}
-                    renderItem={({ item }) => (
-                        <View style={{ position: "relative" }}>
-                            {/* Overlay to close menu when tapping outside */}
-                            {selectedTaskId === item._id && (
-                                <Pressable
-                                    onPress={() => setSelectedTaskId(null)}
-                                    style={StyleSheet.absoluteFillObject}
-                                />
-                            )}
-
-                            {/* Task Card */}
-                            <View style={styles.taskCard}>
-                                {/* Task Header: Title, Priority Badge, and Menu Button */}
-                                <View style={styles.taskHeader}>
-                                    <View style={styles.titleRow}>
-                                        {/* Priority Badge */}
-                                        <View
-                                            style={[
-                                                styles.priorityBadge,
-                                                styles[`priority${item.priority}`],
-                                            ]}>
-                                            <Text style={styles.priorityBadgeText}>
-                                                {item.priority?.[0] || "M"}
-                                            </Text>
-                                        </View>
-
-                                        {/* Task Title */}
-                                        <Text style={styles.taskTitle}>{item.title}</Text>
-                                    </View>
-
-                                    {/* Three-dot Menu Button */}
-                                    <TouchableOpacity onPress={() => setSelectedTaskId(item._id)}>
-                                        <Text style={styles.dots}>⋯</Text>
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Dropdown Menu (Mark Done, Edit, Delete) */}
-                                {selectedTaskId === item._id && (
-                                    <View style={styles.menu}>
-                                        <TouchableOpacity onPress={() => handleMarkDone(item._id)}>
-                                            <Text style={styles.menuItem}>✅ Mark as Done</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() =>
-                                                router.push({
-                                                    pathname: "/create-entry",
-                                                    params: {
-                                                        mode: "edit",
-                                                        type: "task",
-                                                        id: item._id,
-                                                        title: item.title,
-                                                        description: item.description || "",
-                                                        dueDate: item.dueDate,
-                                                        reminder: item.reminder
-                                                            ? new Date(item.reminder).toISOString()
-                                                            : "",
-                                                        tags: Array.isArray(item.tags)
-                                                            ? item.tags.join(",")
-                                                            : "",
-                                                        priority: item.priority || "Medium",
-                                                        target: item.target?.toString() || "",
-                                                        unit: item.unit || "",
-                                                        habitType: item.type || "",
-                                                    },
-                                                })
-                                            }>
-                                            <Text style={styles.menuItem}>✏️ Edit</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => handleDelete(item._id)}>
-                                            <Text style={styles.menuItem}>🗑️ Delete</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-
-                                {/* Task Description */}
-                                <Text style={styles.taskDescription}>{item.description}</Text>
-
-                                {/* Task Footer: Tags and Timeline */}
-                                <View style={styles.taskFooter}>
-                                    {/* Tags Container */}
-                                    <View style={styles.tagContainer}>
-                                        {item.tags?.length > 0 &&
-                                            item.tags.map((tag, index) => (
-                                                <Text key={index} style={styles.tag}>
-                                                    #{tag}
-                                                </Text>
-                                            ))}
-                                    </View>
-
-                                    {/* Timeline (Created Date → Due Date) */}
-                                    <Text
-                                        style={[
-                                            styles.taskTimeline,
-                                            getPriorityStyle(item.priority),
-                                        ]}>
-                                        {new Date(item.createdAt).toLocaleDateString()} →{" "}
-                                        {new Date(item.dueDate).toLocaleDateString()}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    )}
+                <TaskList
+                    tasks={tasks}
+                    sortMode={sortMode}
+                    onMarkDone={handleMarkDone}
+                    onDelete={handleDelete}
+                    onEdit={(item) =>
+                        router.push({
+                            pathname: "/create-entry",
+                            params: {
+                                mode: "edit",
+                                type: "task",
+                                id: item._id,
+                                title: item.title,
+                                description: item.description || "",
+                                dueDate: item.dueDate,
+                                reminder: item.reminder
+                                    ? new Date(item.reminder).toISOString()
+                                    : "",
+                                tags: Array.isArray(item.tags) ? item.tags.join(",") : "",
+                                priority: item.priority || "Medium",
+                                target: item.target?.toString() || "",
+                                unit: item.unit || "",
+                                habitType: item.type || "",
+                            },
+                        })
+                    }
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
                     /* Show empty state when no tasks exist */
                     ListEmptyComponent={
                         <EmptyState
@@ -453,12 +367,6 @@ export default function HomeScreen() {
                             }
                         />
                     }
-                    /* Pull-to-refresh functionality */
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-                    }
-                    /* Add bottom padding for navigation and scrolling */
-                    contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
                 />
             ) : (
                 // =================
