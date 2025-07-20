@@ -154,7 +154,7 @@ export default function MoodTrackerScreen() {
                     <View style={styles.monthRow}>
                         <View style={styles.topRow}>
                             <Text style={styles.monthLabel}>
-                                {format(selectedDate, "MMM yyyy")}
+                                {format(selectedDate, "MMMM yyyy")}
                             </Text>
                             <TouchableOpacity onPress={goToToday} style={styles.todayButton}>
                                 <Text style={styles.todayButtonText}>Go to Today</Text>
@@ -331,17 +331,16 @@ export default function MoodTrackerScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: 80,
+        paddingTop: 20,
         paddingHorizontal: 20,
         flex: 1,
         backgroundColor: "#f9fafb",
     },
     heading: {
+        fontFamily: "Poppins-SemiBold",
         fontSize: 20,
-        fontWeight: "600",
         marginBottom: 12,
         color: "#2196F3",
-        fontFamily: "Rufina",
         textAlign: "center",
     },
     subheading: {
@@ -350,8 +349,9 @@ const styles = StyleSheet.create({
         marginTop: 24,
         marginBottom: 8,
         color: "#2196F3",
-        fontFamily: "Rufina",
+        fontFamily: "Inter",
     },
+
     moodRow: {
         flexDirection: "row",
         marginBottom: 16,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
         padding: 10,
         margin: 6,
         borderRadius: 8,
-        backgroundColor: "#e5e7eb",
+        backgroundColor: "#EBF2FF",
     },
 
     moodSelected: {
@@ -444,9 +444,8 @@ const styles = StyleSheet.create({
     },
     monthLabel: {
         fontSize: Dimensions.get("window").width < 380 ? 18 : 24,
-        fontWeight: "600",
+        fontFamily: "Poppins-SemiBold",
         color: "#111827",
-        fontFamily: "Rufina",
         flexShrink: 1,
     },
     monthRow: {
@@ -464,10 +463,8 @@ const styles = StyleSheet.create({
     },
     todayButtonText: {
         color: "#2196F3",
-        fontSize: 12,
-        fontWeight: "500",
-        fontFamily: "Inter",
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
+        fontFamily: "Inter",
         textAlign: "center",
     },
 
@@ -502,10 +499,10 @@ const styles = StyleSheet.create({
     dayText: {
         fontSize: 10,
         color: "#2196F3",
-        fontFamily: "Inter",
+        fontFamily: "Poppins",
     },
     dateNumber: {
-        fontFamily: "Inter",
+        fontFamily: "Poppins-SemiBold",
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
         fontWeight: "600",
         color: "#2196F3",
@@ -529,7 +526,7 @@ const styles = StyleSheet.create({
     },
     statBar: {
         height: 10,
-        backgroundColor: "#9ca3af",
+        backgroundColor: "#2196F3",
         borderRadius: 5,
         marginRight: 8,
     },

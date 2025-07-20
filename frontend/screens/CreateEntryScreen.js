@@ -257,7 +257,7 @@ export default function CreateEntryScreen() {
             {/* ==== Type Toggle ==== */}
             {!isEditing && (
                 <View
-                    style={styles.toggleRow}
+                    style={styles.tabRow}
                     onLayout={(e) => setTabWidth(e.nativeEvent.layout.width / 2)}>
                     <Animated.View style={[styles.animatedBg, typeBgStyle]} />
                     <TouchableOpacity style={styles.tabTouchable} onPress={() => setType("task")}>
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     // Main container styles
     container: {
         flex: 1,
-        paddingTop: 80,
+        paddingTop: 20,
         paddingHorizontal: 20,
         backgroundColor: "#f9fafb",
     },
@@ -439,10 +439,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     heading: {
-        fontSize: 18,
-        fontWeight: "bold",
+        fontSize: 20,
         color: "#2196F3",
-        fontFamily: "Rufina",
+        fontFamily: "Poppins-SemiBold",
         flex: 1,
         textAlign: "center",
     },
@@ -460,7 +459,7 @@ const styles = StyleSheet.create({
     },
 
     // Toggle
-    toggleRow: {
+    tabRow: {
         flexDirection: "row",
         backgroundColor: "#ffffff",
         borderRadius: 10,
@@ -496,6 +495,7 @@ const styles = StyleSheet.create({
         color: "#90A5B4",
     },
     activeTabText: {
+        fontFamily: "Inter",
         color: "#ffffff",
     },
 
@@ -511,6 +511,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
     },
     textArea: {
+        fontFamily: "Inter",
         minHeight: 80,
         textAlignVertical: "top",
     },
@@ -518,6 +519,7 @@ const styles = StyleSheet.create({
         borderColor: "#EF4444",
     },
     errorText: {
+        fontFamily: "Inter",
         color: "#EF4444",
         fontSize: 12,
         marginTop: -12,
@@ -531,6 +533,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     dateButtonText: {
+        fontFamily: "Inter",
         textAlign: "center",
         color: "#111827",
     },
@@ -569,7 +572,7 @@ const styles = StyleSheet.create({
         fontWeight: "500",
         letterSpacing: 0.6,
         textTransform: "capitalize",
-        color: "#90A5B4",
+        color: "#565c61ff",
         textShadowColor: "rgba(0, 0, 0, 0.12)",
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 1,
@@ -596,6 +599,7 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     submitText: {
+        fontFamily: "Inter",
         color: "#fff",
         fontWeight: "600",
         fontSize: 15,

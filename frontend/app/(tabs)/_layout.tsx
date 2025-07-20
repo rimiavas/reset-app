@@ -3,26 +3,18 @@ import React from "react";
 
 import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import TabBarBackground from "@/components/ui/TabBarBackground";
+import CustomTabBar from "@/components/CustomTabBar";
+
 import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function TabLayout() {
-    const colorScheme = useColorScheme();
-
     return (
         <Tabs
+            tabBar={(props) => <CustomTabBar {...props} />}
             screenOptions={{
-                tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+                tabBarActiveTintColor: Colors.light.tint,
                 headerShown: false,
                 tabBarButton: HapticTab,
-                tabBarBackground: TabBarBackground,
-                tabBarStyle: {
-                    backgroundColor: "#fbfbfb",
-                    height: 70,
-                    borderTopWidth: 0,
-                    position: "absolute",
-                },
                 tabBarLabelStyle: {
                     fontFamily: "Poppins-Medium",
                     fontSize: 12,

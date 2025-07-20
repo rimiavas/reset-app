@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#f9fafb",
-        paddingTop: 80,
+        paddingTop: 20,
         paddingHorizontal: 20,
     },
     headerRow: {
@@ -206,13 +206,12 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     heading: {
+        fontFamily: "Poppins-SemiBold",
         flex: 1,
-        fontSize: 18,
-        fontWeight: "bold",
+        fontSize: 20,
         color: "#2196F3",
         marginBottom: 20,
         textAlign: "center",
-        fontFamily: "Rufina",
     },
 
     // Task card styles
@@ -245,7 +244,7 @@ const styles = StyleSheet.create({
     },
     taskTitle: {
         color: "#2196F3",
-        fontFamily: "Rufina",
+        fontFamily: "Inter",
         fontSize: 15,
         fontWeight: "500",
         letterSpacing: 0.6,
@@ -258,7 +257,7 @@ const styles = StyleSheet.create({
         lineHeight: 5,
     },
     taskDescription: {
-        fontFamily: "Inter",
+        fontFamily: "Poppins",
         fontSize: 10,
         fontWeight: "400",
         color: "#4A4646",
@@ -289,7 +288,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     taskTimeline: {
-        fontFamily: "SpaceMono",
+        fontFamily: "Poppins",
         fontSize: 10,
         fontWeight: "400",
         color: "#0668E5",
@@ -305,6 +304,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     priorityBadgeText: {
+        fontFamily: "Poppins",
         fontSize: 10,
         color: "#fff",
         fontWeight: "bold",
@@ -337,6 +337,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
     },
     menuItem: {
+        fontFamily: "Inter",
         fontSize: 12,
         paddingVertical: 6,
         paddingHorizontal: 10,
@@ -345,6 +346,7 @@ const styles = StyleSheet.create({
 
     // Empty state styles
     empty: {
+        fontFamily: "Inter",
         fontSize: 14,
         color: "#94a3b8",
         textAlign: "center",
@@ -362,6 +364,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     backText: {
+        fontFamily: "Inter",
         fontSize: 14,
         fontWeight: "500",
         color: "#2196F3",

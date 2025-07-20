@@ -616,7 +616,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#f9fafb",
-        paddingTop: 80,
+        paddingTop: 20,
+        paddingHorizontal: 20,
         paddingHorizontal: 16,
     },
 
@@ -640,9 +641,8 @@ const styles = StyleSheet.create({
     },
     monthLabel: {
         fontSize: Dimensions.get("window").width < 380 ? 18 : 24,
-        fontWeight: "600",
+        fontFamily: "Poppins-SemiBold",
         color: "#111827",
-        fontFamily: "Rufina",
         flexShrink: 1,
     },
     monthRow: {
@@ -660,10 +660,9 @@ const styles = StyleSheet.create({
     },
     todayButtonText: {
         color: "#2196F3",
-        fontSize: 12,
-        fontWeight: "500",
-        fontFamily: "Inter",
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
+        fontFamily: "Inter",
+        fontWeight: "500",
         textAlign: "center",
     },
     addButton: {
@@ -681,6 +680,7 @@ const styles = StyleSheet.create({
         flexShrink: 0,
     },
     addButtonText: {
+        fontFamily: "Inter",
         color: "#fff",
         fontWeight: "bold",
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
@@ -715,12 +715,12 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
     },
     dayText: {
-        fontFamily: "Inter",
+        fontFamily: "Poppins",
         fontSize: 10,
         color: "#2196F3",
     },
     dateNumber: {
-        fontFamily: "Inter",
+        fontFamily: "Poppins-SemiBold",
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
         fontWeight: "600",
         color: "#2196F3",
@@ -737,7 +737,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         alignSelf: "center",
         width: "100%",
-        height: 57,
+        height: 40,
         position: "relative",
         overflow: "hidden",
     },
@@ -766,9 +766,9 @@ const styles = StyleSheet.create({
         color: "#90A5B4",
     },
     activeTabText: {
+        fontFamily: "Inter",
         color: "#ffffff",
     },
-
     // Control button styles
     viewCompletedBtn: {
         position: "absolute",
@@ -794,6 +794,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     sortButtonText: {
+        fontFamily: "Inter",
         color: "#2196F3",
         fontSize: 12,
         fontWeight: "500",
@@ -829,7 +830,7 @@ const styles = StyleSheet.create({
     },
     taskTitle: {
         color: "#2196F3",
-        fontFamily: "Rufina",
+        fontFamily: "Inter",
         fontSize: 15,
         fontWeight: "500",
         letterSpacing: 0.6,
@@ -842,7 +843,7 @@ const styles = StyleSheet.create({
         lineHeight: 5,
     },
     taskDescription: {
-        fontFamily: "Inter",
+        fontFamily: "Poppins",
         fontSize: 10,
         fontWeight: "400",
         color: "#4A4646",
@@ -875,7 +876,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     taskTimeline: {
-        fontFamily: "SpaceMono",
+        fontFamily: "Poppins",
         fontSize: 10,
         fontWeight: "400",
         color: "#0668E5",
@@ -891,6 +892,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     priorityBadgeText: {
+        fontFamily: "Inter",
         fontSize: 10,
         color: "#fff",
         fontWeight: "bold",
@@ -945,12 +947,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     habitTitle: {
-        fontFamily: "Rufina",
+        color: "#2196F3",
+        fontFamily: "Inter",
         fontSize: 15,
         fontWeight: "500",
-        color: "#2196F3",
-        flex: 1,
-        marginRight: 8,
+        letterSpacing: 0.6,
+        textTransform: "capitalize",
+        width: "100%",
     },
     counterRow: {
         flexDirection: "row",
@@ -967,17 +970,20 @@ const styles = StyleSheet.create({
         marginHorizontal: 8,
     },
     counterText: {
+        fontFamily: "Poppins",
         fontSize: 16,
         fontWeight: "bold",
         color: "#2196F3",
     },
     counterValue: {
+        fontFamily: "Poppins",
         fontSize: 12,
         fontWeight: "bold",
         color: "#333",
         textAlign: "center",
     },
     unitText: {
+        fontFamily: "Poppins",
         fontSize: 10,
         color: "#666",
         textAlign: "center",
@@ -988,6 +994,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     habitTag: {
+        fontFamily: "SpaceMono",
         fontSize: 10,
         fontWeight: "bold",
         color: "#2196F3",
@@ -1016,6 +1023,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
     },
     menuItem: {
+        fontFamily: "Inter",
         fontSize: 12,
         paddingVertical: 6,
         paddingHorizontal: 10,
@@ -1028,6 +1036,7 @@ const styles = StyleSheet.create({
         marginTop: 40,
     },
     EmptyText: {
+        fontFamily: "Inter",
         color: "#94a3b8",
         fontSize: 14,
         marginBottom: 14,
@@ -1039,6 +1048,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     EmptyButtonText: {
+        fontFamily: "Inter",
         color: "#fff",
         fontWeight: "600",
         fontSize: 15,

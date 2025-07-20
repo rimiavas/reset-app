@@ -10,6 +10,7 @@ import {
     Platform,
     Alert,
     Dimensions,
+    Image,
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
@@ -19,6 +20,7 @@ import Animated, {
     withTiming,
     interpolate,
 } from "react-native-reanimated";
+import Logo from "../assets/images/Reset.png";
 
 export default function HomeScreen() {
     // =================
@@ -279,6 +281,12 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
+            {/* =================
+                    LOGO 
+                ================= */}
+
+            <Image source={Logo} style={styles.logo} resizeMode="contain" />
+
             {/* =================
                 QUOTE SECTION
                 ================= */}
@@ -625,10 +633,18 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     // Main container styles
     container: {
-        paddingTop: 80,
         paddingHorizontal: 20,
         flex: 1,
         backgroundColor: "#f9fafb",
+    },
+
+    //LOGO STYLES
+    logo: {
+        width: 60,
+        height: 60,
+        alignSelf: "center",
+        marginBottom: 10,
+        marginTop: 10,
     },
 
     // Quote section styles
@@ -647,11 +663,13 @@ const styles = StyleSheet.create({
     quoteLine: {
         flexDirection: "row",
         flexWrap: "wrap",
+        justifyContent: "space-between",
+        letterSpacing: 1,
     },
     quoteMark: {
         color: "#54D2E1",
         fontFamily: "Rufina",
-        fontSize: 13,
+        fontSize: 20,
         fontWeight: "700",
         letterSpacing: 0.52,
         textTransform: "capitalize",
@@ -659,7 +677,7 @@ const styles = StyleSheet.create({
     quoteText: {
         color: "#000000",
         fontFamily: "Rufina",
-        fontSize: 13,
+        fontSize: 15,
         fontWeight: "700",
         letterSpacing: 0.52,
         textTransform: "capitalize",
@@ -673,7 +691,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         alignSelf: "center",
         width: "100%",
-        height: 57,
+        height: 40,
         position: "relative",
         overflow: "hidden",
     },
@@ -702,6 +720,7 @@ const styles = StyleSheet.create({
         color: "#90A5B4",
     },
     activeTabText: {
+        fontFamily: "Inter",
         color: "#ffffff",
     },
 
@@ -753,7 +772,7 @@ const styles = StyleSheet.create({
     },
     taskTitle: {
         color: "#2196F3",
-        fontFamily: "Rufina",
+        fontFamily: "Inter",
         fontSize: 15,
         fontWeight: "500",
         letterSpacing: 0.6,
@@ -766,7 +785,7 @@ const styles = StyleSheet.create({
         lineHeight: 5,
     },
     taskDescription: {
-        fontFamily: "Inter",
+        fontFamily: "Poppins",
         fontSize: 10,
         fontWeight: "400",
         letterSpacing: 0.4,
@@ -776,7 +795,7 @@ const styles = StyleSheet.create({
         flexWrap: "wrap",
     },
     taskTimeline: {
-        fontFamily: "SpaceMono",
+        fontFamily: "Poppins",
         fontSize: 10,
         fontWeight: "400",
         color: "#0668E5",
@@ -825,6 +844,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
     },
     menuItem: {
+        fontFamily: "Inter",
         fontSize: 12,
         paddingVertical: 6,
         paddingHorizontal: 10,
@@ -843,6 +863,7 @@ const styles = StyleSheet.create({
         zIndex: 5,
     },
     viewCompletedText: {
+        fontFamily: "Inter",
         color: "#2196F3",
         fontSize: 12,
         fontWeight: "500",
@@ -856,6 +877,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     sortButtonText: {
+        fontFamily: "Inter",
         color: "#2196F3",
         fontSize: 12,
         fontWeight: "500",
@@ -876,6 +898,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     priorityBadgeText: {
+        fontFamily: "Inter",
         fontSize: 10,
         color: "#fff",
         fontWeight: "bold",
@@ -926,6 +949,7 @@ const styles = StyleSheet.create({
     },
 
     habitTag: {
+        fontFamily: "SpaceMono",
         fontSize: 10,
         fontWeight: "bold",
         color: "#2196F3",
@@ -943,12 +967,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     habitTitle: {
-        fontFamily: "Rufina",
+        color: "#2196F3",
+        fontFamily: "Inter",
         fontSize: 15,
         fontWeight: "500",
-        color: "#2196F3",
-        flex: 1,
-        marginRight: 8,
+        letterSpacing: 0.6,
+        textTransform: "capitalize",
+        width: "100%",
     },
     habitTagContainer: {
         alignItems: "flex-start",
@@ -974,12 +999,14 @@ const styles = StyleSheet.create({
     },
 
     counterText: {
+        fontFamily: "Poppins",
         fontSize: 16,
         fontWeight: "bold",
         color: "#2196F3",
     },
 
     counterValue: {
+        fontFamily: "Poppins",
         fontSize: 12,
         fontWeight: "bold",
         color: "#333",
@@ -987,6 +1014,7 @@ const styles = StyleSheet.create({
     },
 
     unitText: {
+        fontFamily: "Poppins",
         fontSize: 10,
         color: "#666",
         textAlign: "center",
@@ -997,6 +1025,7 @@ const styles = StyleSheet.create({
         marginTop: 40,
     },
     EmptyText: {
+        fontFamily: "Inter",
         color: "#94a3b8",
         fontSize: 14,
         marginBottom: 14,
@@ -1008,6 +1037,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     EmptyButtonText: {
+        fontFamily: "Inter",
         color: "#fff",
         fontWeight: "600",
         fontSize: 15,
