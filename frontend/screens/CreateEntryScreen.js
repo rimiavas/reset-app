@@ -17,8 +17,8 @@ import Animated, {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../constants/constants";
-import buttonStyles from "../constants/buttonStyles";
-import tabStyles from "../constants/tabStyles";
+import buttonStyles from "../constants/StyleSheet/buttonStyles";
+import tabStyles from "../constants/StyleSheet/tabStyles";
 
 // =================
 // FORMATS DATE+INPUT

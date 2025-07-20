@@ -10,10 +10,10 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
-import taskCardStyles from "../constants/taskCardStyles";
-import menuStyles from "../constants/menuStyles";
-import emptyStateStyles from "../constants/emptyStateStyles";
-import buttonStyles from "@/constants/buttonStyles";
+import taskCardStyles from "../constants/StyleSheet/taskCardStyles";
+import menuStyles from "../constants/StyleSheet/menuStyles";
+import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
+import buttonStyles from "../constants/StyleSheet/buttonStyles";
 
 export default function CompletedTasksScreen() {
     // =================

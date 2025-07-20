@@ -21,13 +21,14 @@ import Animated, {
     withTiming,
     interpolate,
 } from "react-native-reanimated";
-import taskCardStyles from "../constants/taskCardStyles";
-import tabStyles from "../constants/tabStyles";
-import menuStyles from "../constants/menuStyles";
-import habitStyles from "../constants/habitStyles";
-import emptyStateStyles from "../constants/emptyStateStyles";
-import buttonStyles from "../constants/buttonStyles";
-import calendarStyles from "../constants/calendarStyles.js";
+import taskCardStyles from "../constants/StyleSheet/taskCardStyles";
+import tabStyles from "../constants/StyleSheet/tabStyles";
+import menuStyles from "../constants/StyleSheet/menuStyles";
+import habitStyles from "../constants/StyleSheet/habitStyles";
+import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
+import buttonStyles from "../constants/StyleSheet/buttonStyles";
+import calendarStyles from "../constants/StyleSheet/calendarStyles.js";
+import { sortTasks, getPriorityStyle } from "../constants/utility/taskUtils";
 
 export default function CalendarScreen() {
     // ================
@@ -152,17 +153,6 @@ export default function CalendarScreen() {
         ? tasks.filter((task) => isSameDay(new Date(task.dueDate), selectedDate))
         : [];
     const filteredHabits = Array.isArray(habits) ? habits : [];
-    const sortTasks = (data) => {
-        if (sortMode === "dueDate") {
-            return [...data].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-        } else if (sortMode === "priority") {
-            const order = { High: 0, Medium: 1, Low: 2 };
-            return [...data].sort(
-                (a, b) => order[a.priority || "Medium"] - order[b.priority || "Medium"]
-            );
-        }
-        return data;
-    };
 
     // ================
     // CRUD OPERATIONS
@@ -178,18 +168,6 @@ export default function CalendarScreen() {
             setHabits((prev) => prev.map((h) => (h._id === id ? updated : h)));
         } catch (err) {
             console.error("Failed to update habit log:", err);
-        }
-    };
-    const getPriorityStyle = (priority) => {
-        switch (priority) {
-            case "High":
-                return styles.highPriority;
-            case "Medium":
-                return styles.mediumPriority;
-            case "Low":
-                return styles.lowPriority;
-            default:
-                return styles.lowPriority;
         }
     };
     const handleDelete = async (id) => {
@@ -377,7 +355,7 @@ export default function CalendarScreen() {
                     {/* Tasks List */}
                     <FlatList
                         style={{ flex: 1 }}
-                        data={sortTasks(filteredTasks)}
+                        data={sortTasks(filteredTasks, sortMode)}
                         keyExtractor={(item) => item._id}
                         renderItem={({ item }) => (
                             <View style={{ position: "relative" }}>

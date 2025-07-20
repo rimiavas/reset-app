@@ -18,7 +18,7 @@ import Animated, {
     withTiming,
     interpolate,
 } from "react-native-reanimated";
-import calendarStyles from "../constants/calendarStyles";
+import calendarStyles from "../constants/StyleSheet/calendarStyles";
 
 import { useFocusEffect } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";

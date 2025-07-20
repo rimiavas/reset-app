@@ -21,12 +21,13 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import Logo from "../assets/images/Reset.png";
-import tabStyles from "../constants/tabStyles";
-import taskCardStyles from "../constants/taskCardStyles";
-import buttonStyles from "../constants/buttonStyles";
-import habitStyles from "../constants/habitStyles";
-import emptyStateStyles from "../constants/emptyStateStyles";
-import menuStyles from "../constants/menuStyles";
+import tabStyles from "../constants/StyleSheet/tabStyles";
+import taskCardStyles from "../constants/StyleSheet/taskCardStyles";
+import buttonStyles from "../constants/StyleSheet/buttonStyles";
+import habitStyles from "../constants/StyleSheet/habitStyles";
+import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
+import menuStyles from "../constants/StyleSheet/menuStyles";
+import { sortTasks, getPriorityStyle } from "../constants/utility/taskUtils";
 
 export default function HomeScreen() {
     // =================
@@ -221,19 +222,6 @@ export default function HomeScreen() {
     // UTILITY FUNCTIONS
     // =================
 
-    // Sort tasks by due date or priority
-    const sortTasks = (data) => {
-        if (sortMode === "dueDate") {
-            return [...data].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-        } else if (sortMode === "priority") {
-            const order = { High: 0, Medium: 1, Low: 2 };
-            return [...data].sort(
-                (a, b) => order[a.priority || "Medium"] - order[b.priority || "Medium"]
-            );
-        }
-        return data;
-    };
-
     // Update habit progress (increment/decrement counter)
     const updateHabit = async (id, delta) => {
         try {
@@ -248,20 +236,6 @@ export default function HomeScreen() {
             setHabits((prev) => prev.map((h) => (h._id === id ? updated : h)));
         } catch (err) {
             console.error("Failed to update habit log:", err);
-        }
-    };
-
-    // Helper function to get the appropriate style object based on priority level
-    const getPriorityStyle = (priority) => {
-        switch (priority) {
-            case "High":
-                return styles.highPriority;
-            case "Medium":
-                return styles.mediumPriority;
-            case "Low":
-                return styles.lowPriority;
-            default:
-                return styles.lowPriority;
         }
     };
 
@@ -363,7 +337,7 @@ export default function HomeScreen() {
             {view === "tasks" ? (
                 <FlatList
                     style={{ flex: 1 }}
-                    data={sortTasks(tasks)}
+                    data={sortTasks(tasks, sortMode)}
                     keyExtractor={(item) => item._id}
                     renderItem={({ item }) => (
                         <View style={{ position: "relative" }}>
