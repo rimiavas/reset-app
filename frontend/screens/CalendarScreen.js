@@ -1,20 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    Platform,
-    Alert,
-    Dimensions,
-} from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
 import EmptyState from "../components/EmptyState";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
-import { API_URL } from "../constants/constants";
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -28,16 +18,15 @@ import habitStyles from "../constants/StyleSheet/habitStyles";
 import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import calendarStyles from "../constants/StyleSheet/calendarStyles.js";
+import useTaskHabitData from "../hooks/useTaskHabitData";
 export default function CalendarScreen() {
     // ================
     // STATE MANAGEMENT
     // ================
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [view, setView] = useState("tasks"); // "tasks" or "habits"
-    const [tasks, setTasks] = useState([]);
-    const [habits, setHabits] = useState([]);
-    const [refreshing, setRefreshing] = useState(false);
-
+    const { tasks, habits, refreshing, handleRefresh, handleDelete, handleMarkDone, updateHabit } =
+        useTaskHabitData();
     const [sortMode, setSortMode] = useState("dueDate");
     const router = useRouter();
 
@@ -55,31 +44,6 @@ export default function CalendarScreen() {
         const translateX = interpolate(tabTranslate.value, [0, 1], [0, tabWidth]);
         return { transform: [{ translateX }] };
     });
-
-    // ================
-    // DATA FETCHING
-    // ================
-    const fetchData = useCallback(() => {
-        return Promise.all([
-            fetch(`${API_URL}/api/tasks`)
-                .then((res) => res.json())
-                .then((data) => setTasks(data.filter((task) => !task.completed)))
-                .catch((err) => console.error("Error fetching tasks:", err)),
-            fetch(`${API_URL}/api/habits`)
-                .then((res) => res.json())
-                .then(setHabits)
-                .catch((err) => console.error("Error fetching habits:", err)),
-        ]);
-    }, []);
-    useFocusEffect(
-        useCallback(() => {
-            fetchData();
-        }, [fetchData])
-    );
-    const handleRefresh = () => {
-        setRefreshing(true);
-        fetchData().finally(() => setRefreshing(false));
-    };
 
     // ================
     // DATE RANGE + SCROLL LOGIC
@@ -147,81 +111,6 @@ export default function CalendarScreen() {
         ? tasks.filter((task) => isSameDay(new Date(task.dueDate), selectedDate))
         : [];
     const filteredHabits = Array.isArray(habits) ? habits : [];
-
-    // ================
-    // CRUD OPERATIONS
-    // ================
-    const updateHabit = async (id, delta) => {
-        try {
-            const res = await fetch(`${API_URL}/api/habits/log/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: delta }),
-            });
-            const updated = await res.json();
-            setHabits((prev) => prev.map((h) => (h._id === id ? updated : h)));
-        } catch (err) {
-            console.error("Failed to update habit log:", err);
-        }
-    };
-    const handleDelete = async (id) => {
-        const route = view === "habits" ? "habits" : "tasks";
-        if (Platform.OS === "web") {
-            const confirm = window.confirm(
-                `Are you sure you want to delete this ${route.slice(0, -1)}?`
-            );
-            if (!confirm) return;
-            try {
-                await fetch(`${API_URL}/api/${route}/${id}`, { method: "DELETE" });
-                if (view === "tasks") {
-                    setTasks((prev) => prev.filter((t) => t._id !== id));
-                } else {
-                    setHabits((prev) => prev.filter((h) => h._id !== id));
-                }
-            } catch (err) {
-                console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-            }
-        } else {
-            Alert.alert(
-                "Delete Entry",
-                `Are you sure you want to delete this ${route.slice(0, -1)}?`,
-                [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                        text: "Yes",
-                        style: "destructive",
-                        onPress: async () => {
-                            try {
-                                await fetch(`${API_URL}/api/${route}/${id}`, {
-                                    method: "DELETE",
-                                });
-                                if (view === "tasks") {
-                                    setTasks((prev) => prev.filter((t) => t._id !== id));
-                                } else {
-                                    setHabits((prev) => prev.filter((h) => h._id !== id));
-                                }
-                            } catch (err) {
-                                console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-                            }
-                        },
-                    },
-                ],
-                { cancelable: true }
-            );
-        }
-    };
-    const handleMarkDone = async (id) => {
-        try {
-            await fetch(`${API_URL}/api/tasks/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ completed: true }),
-            });
-            setTasks((prev) => prev.filter((task) => task._id !== id));
-        } catch (err) {
-            console.error("Error marking task done:", err);
-        }
-    };
 
     // ================
     // MAIN RENDER
@@ -329,7 +218,7 @@ export default function CalendarScreen() {
                         tasks={filteredTasks}
                         sortMode={sortMode}
                         onMarkDone={handleMarkDone}
-                        onDelete={handleDelete}
+                        onDelete={(id) => handleDelete(id, "task")}
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
                         ListEmptyComponent={
@@ -350,7 +239,7 @@ export default function CalendarScreen() {
                 <>
                     <HabitGrid
                         habits={filteredHabits}
-                        onDelete={handleDelete}
+                        onDelete={(id) => handleDelete(id, "habit")}
                         onUpdate={updateHabit}
                         date={selectedDate}
                     />

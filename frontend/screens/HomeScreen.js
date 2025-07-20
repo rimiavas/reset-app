@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
 import EmptyState from "../components/EmptyState";
-import { useFocusEffect, useRouter } from "expo-router";
-import { API_URL } from "../constants/constants";
+import { useRouter } from "expo-router";
+import useTaskHabitData from "../hooks/useTaskHabitData";
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -30,12 +30,9 @@ export default function HomeScreen() {
     // Stores the motivational quote displayed at the top
     const [quote, setQuote] = useState("");
 
-    // Arrays to store tasks and habits data from the API
-    const [tasks, setTasks] = useState([]);
-    const [habits, setHabits] = useState([]);
-
-    // Controls the pull-to-refresh loading state
-    const [refreshing, setRefreshing] = useState(false);
+    // Tasks and habits data
+    const { tasks, habits, refreshing, handleRefresh, handleDelete, handleMarkDone, updateHabit } =
+        useTaskHabitData();
 
     // Stores the width of each tab for animation calculations
     const [tabWidth, setTabWidth] = useState(0);
@@ -53,10 +50,6 @@ export default function HomeScreen() {
     // Controls how tasks are sorted (dueDate or priority)
     const [sortMode, setSortMode] = useState("dueDate");
 
-    // =================
-    // DATA FETCHING
-    // =================
-
     // Fetch daily quote on component mount
     useEffect(() => {
         fetch(`${API_URL}/api/quotes`)
@@ -64,40 +57,6 @@ export default function HomeScreen() {
             .then((data) => setQuote(data.quote))
             .catch((err) => console.error("Error fetching quote:", err));
     }, []);
-
-    // Fetch tasks and habits data from API
-    const fetchData = useCallback(() => {
-        return Promise.all([
-            // Fetch tasks and filter out completed ones
-            fetch(`${API_URL}/api/tasks`)
-                .then((res) => res.json())
-                .then((data) => setTasks(data.filter((task) => !task.completed)))
-                .catch((err) => console.error("Error fetching tasks:", err)),
-
-            // Fetch all habits
-            fetch(`${API_URL}/api/habits`)
-                .then((res) => res.json())
-                .then(setHabits)
-                .catch((err) => console.error("Error fetching habits:", err)),
-        ]);
-    }, []);
-
-    // Refresh data when screen comes into focus
-    useFocusEffect(
-        useCallback(() => {
-            fetchData();
-        }, [fetchData])
-    );
-
-    // =================
-    // EVENT HANDLERS
-    // =================
-
-    // Handle pull-to-refresh functionality
-    const handleRefresh = () => {
-        setRefreshing(true);
-        fetchData().finally(() => setRefreshing(false));
-    };
 
     // Animate tab indicator when view changes
     useEffect(() => {
@@ -113,102 +72,6 @@ export default function HomeScreen() {
             transform: [{ translateX }],
         };
     });
-
-    // =================
-    // CRUD OPERATIONS
-    // =================
-
-    // Delete a task or habit with platform-specific confirmation
-    const handleDelete = async (id) => {
-        const route = view === "habits" ? "habits" : "tasks";
-
-        // Use different confirmation dialogs for web vs mobile
-        if (Platform.OS === "web") {
-            const confirm = window.confirm(
-                `Are you sure you want to delete this ${route.slice(0, -1)}?`
-            );
-            if (!confirm) return;
-            try {
-                await fetch(`${API_URL}/api/${route}/${id}`, { method: "DELETE" });
-
-                // Update local state to remove deleted item
-                if (view === "tasks") {
-                    setTasks((prev) => prev.filter((task) => task._id !== id));
-                } else {
-                    setHabits((prev) => prev.filter((habit) => habit._id !== id));
-                }
-            } catch (err) {
-                console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-            }
-        } else {
-            // Native mobile alert dialog
-            Alert.alert(
-                "Delete Entry",
-                `Are you sure you want to delete this ${route.slice(0, -1)}?`,
-                [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                        text: "Yes",
-                        style: "destructive",
-                        onPress: async () => {
-                            try {
-                                await fetch(`${API_URL}/api/${route}/${id}`, {
-                                    method: "DELETE",
-                                });
-
-                                // Update local state to remove deleted item
-                                if (view === "tasks") {
-                                    setTasks((prev) => prev.filter((task) => task._id !== id));
-                                } else {
-                                    setHabits((prev) => prev.filter((habit) => habit._id !== id));
-                                }
-                            } catch (err) {
-                                console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-                            }
-                        },
-                    },
-                ],
-                { cancelable: true }
-            );
-        }
-    };
-
-    // Mark a task as completed
-    const handleMarkDone = async (id) => {
-        try {
-            await fetch(`${API_URL}/api/tasks/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ completed: true }),
-            });
-
-            // Remove completed task from the tasks list
-            setTasks((prev) => prev.filter((task) => task._id !== id));
-        } catch (err) {
-            console.error("Error marking task done:", err);
-        }
-    };
-
-    // =================
-    // UTILITY FUNCTIONS
-    // =================
-
-    // Update habit progress (increment/decrement counter)
-    const updateHabit = async (id, delta) => {
-        try {
-            const res = await fetch(`${API_URL}/api/habits/log/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: delta }),
-            });
-            const updated = await res.json();
-
-            // Update the habit in local state with new progress
-            setHabits((prev) => prev.map((h) => (h._id === id ? updated : h)));
-        } catch (err) {
-            console.error("Failed to update habit log:", err);
-        }
-    };
 
     // =================
     // MAIN RENDER
@@ -294,7 +157,7 @@ export default function HomeScreen() {
                     tasks={tasks}
                     sortMode={sortMode}
                     onMarkDone={handleMarkDone}
-                    onDelete={handleDelete}
+                    onDelete={(id) => handleDelete(id, "task")}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
                     /* Show empty state when no tasks exist */
@@ -313,7 +176,11 @@ export default function HomeScreen() {
             ) : (
                 //   HABITS GRID VIEW
                 <>
-                    <HabitGrid habits={habits} onDelete={handleDelete} onUpdate={updateHabit} />
+                    <HabitGrid
+                        habits={habits}
+                        onDelete={(id) => handleDelete(id, "habit")}
+                        onUpdate={updateHabit}
+                    />
 
                     {/* Show empty state when no habits exist */}
                     {habits.length === 0 && (
