@@ -6,16 +6,28 @@ import habitStyles from "../../constants/StyleSheet/habitStyles";
 import menuStyles from "../../constants/StyleSheet/menuStyles";
 import taskCardStyles from "../../constants/StyleSheet/taskCardStyles";
 
+// ==================================
+// HABIT GRID COMPONENT
+// displays habits in a responsive grid
+// ==================================
+
 export default function HabitGrid({ habits = [], onDelete, onUpdate, date = new Date() }) {
+    // ==================
+    // SETUP & STATE
+    // ==================
+    // Track which task has its 3-dot menu open
     const [selectedHabitId, setSelectedHabitId] = useState(null);
     const router = useRouter();
     const numColumns =
         Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
-
+    // helpers for logging date
     const isToday = isSameDay(date, new Date());
     const dateStr = date.toISOString().split("T")[0];
-
+    // ==================
+    // MAIN RENDER
+    // ==================
     return (
+        //Habits grid
         <View style={styles.habitGrid}>
             {Array.from({ length: Math.ceil(habits.length / numColumns) }).map((_, rowIndex) => (
                 <View key={rowIndex} style={styles.habitRow}>
@@ -29,7 +41,9 @@ export default function HabitGrid({ habits = [], onDelete, onUpdate, date = new 
                                     key={habit._id}
                                     style={[styles.habitCard, { position: "relative" }]}>
                                     <View style={styles.habitHeader}>
+                                        {/* Habit Title */}
                                         <Text style={styles.habitTitle}>{habit.title}</Text>
+                                        {/* Three-dot Menu Button */}
                                         <TouchableOpacity
                                             onPress={() => setSelectedHabitId(habit._id)}>
                                             <Text style={styles.dots}>⋯</Text>
@@ -113,6 +127,9 @@ export default function HabitGrid({ habits = [], onDelete, onUpdate, date = new 
     );
 }
 
+// ==================
+// STYLES
+// ==================
 const styles = StyleSheet.create({
     ...habitStyles,
     ...menuStyles,

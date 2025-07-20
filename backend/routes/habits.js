@@ -2,6 +2,11 @@ const express = require("express");
 const router = express.Router();
 const Habit = require("../models/Habit");
 
+// ==================================
+// HABIT ROUTES
+// for creating, updating and logging habits
+// ==================================
+
 // GET all habits
 router.get("/", async (req, res) => {
     try {

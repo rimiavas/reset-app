@@ -26,7 +26,6 @@ import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import habitStyles from "../constants/StyleSheet/habitStyles";
 import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
 import menuStyles from "../constants/StyleSheet/menuStyles";
-import { sortTasks, getPriorityStyle } from "../constants/utility/taskUtils";
 
 export default function HomeScreen() {
     // =================

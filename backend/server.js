@@ -3,10 +3,14 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
+// ==================================
+// BASIC EXPRESS SERVER
+// Handles database connection and registers routes
+// ==================================
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware express
 app.use(cors());
 app.use(express.json());
 
@@ -32,6 +36,9 @@ app.use("/api/tasks", tasksRouter);
 app.use("/api/moods", moodsRouter);
 app.use("/api/quotes", quotesRouter);
 
+// ==================
+// START SERVER
+// ==================
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

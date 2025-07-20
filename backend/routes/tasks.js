@@ -2,7 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
 
-// GET all tasks
+// ==================================
+// TASK ROUTES
+// for creating, updating and logging tasks
+// ==================================
 router.get("/", async (req, res) => {
     try {
         const tasks = await Task.find().sort({ dueDate: 1 });
@@ -31,6 +34,7 @@ router.post("/", async (req, res) => {
     }
 });
 
+// PATCH to log progress
 router.patch("/:id", async (req, res) => {
     try {
         const updatedTask = await Task.findByIdAndUpdate(

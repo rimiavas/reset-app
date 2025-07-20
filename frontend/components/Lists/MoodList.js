@@ -1,7 +1,15 @@
 import { View, Text, StyleSheet } from "react-native";
 import { format, isSameDay } from "date-fns";
 
+// ==================================
+// MOOD LIST COMPONENT
+// shows mood entries for a selected date or all time
+// ==================================
+
 export default function MoodEntriesList({ entries, selectedDate, viewAll }) {
+    // ==================
+    // MAIN RENDER
+    // ==================
     return (
         <View>
             {entries

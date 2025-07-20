@@ -2,6 +2,11 @@ const express = require("express");
 const router = express.Router();
 const Mood = require("../models/Mood");
 
+// ==================================
+// MOOD ROUTES
+// for logging and retrieving mood entries
+// ==================================
+
 // GET all mood entries
 router.get("/", async (req, res) => {
     try {

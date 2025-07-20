@@ -5,10 +5,18 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import { Colors } from "@/constants/Colors";
 
+// ==================================
+// CUSTOM TAB BAR
+// renders navigation bar with icons and labels
+// ==================================
+
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const activeColor = Colors.light.tint;
     const inactiveColor = Colors.light.tabIconDefault;
 
+    // ==================
+    // MAIN RENDER
+    // ==================
     return (
         <View style={styles.container}>
             <View style={styles.menuList}>
@@ -61,6 +69,9 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
     );
 }
 
+// ==================
+// STYLES
+// ==================
 const styles = StyleSheet.create({
     container: {
         height: 70,
