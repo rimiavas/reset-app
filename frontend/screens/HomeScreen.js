@@ -127,19 +127,18 @@ export default function HomeScreen() {
             const confirm = window.confirm(
                 `Are you sure you want to delete this ${route.slice(0, -1)}?`
             );
-            if (confirm) {
-                try {
-                    await fetch(`${API_URL}/api/${route}/${id}`, { method: "DELETE" });
+            if (!confirm) return;
+            try {
+                await fetch(`${API_URL}/api/${route}/${id}`, { method: "DELETE" });
 
-                    // Update local state to remove deleted item
-                    if (view === "tasks") {
-                        setTasks((prev) => prev.filter((task) => task._id !== id));
-                    } else {
-                        setHabits((prev) => prev.filter((habit) => habit._id !== id));
-                    }
-                } catch (err) {
-                    console.error(`Error deleting ${route.slice(0, -1)}:`, err);
+                // Update local state to remove deleted item
+                if (view === "tasks") {
+                    setTasks((prev) => prev.filter((task) => task._id !== id));
+                } else {
+                    setHabits((prev) => prev.filter((habit) => habit._id !== id));
                 }
+            } catch (err) {
+                console.error(`Error deleting ${route.slice(0, -1)}:`, err);
             }
         } else {
             // Native mobile alert dialog

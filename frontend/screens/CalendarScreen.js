@@ -410,6 +410,5 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontWeight: "bold",
         fontSize: Dimensions.get("window").width < 380 ? 11 : 14,
-        fontFamily: "Inter",
     },
 });
