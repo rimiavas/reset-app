@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert, Image } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
+import EmptyState from "../components/EmptyState";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
 import Animated, {
@@ -211,22 +212,6 @@ export default function HomeScreen() {
     };
 
     // =================
-    // COMPONENTS
-    // =================
-
-    // Empty state component shown when no tasks/habits exist
-    function EmptyState({ label, onPress }) {
-        return (
-            <View style={styles.EmptyContainer}>
-                <Text style={styles.EmptyText}>No {label.toLowerCase()} yet.</Text>
-                <TouchableOpacity onPress={onPress} style={styles.EmptyButton}>
-                    <Text style={styles.EmptyButtonText}>+ Create {label}</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
-
-    // =================
     // MAIN RENDER
     // =================
 
@@ -311,27 +296,6 @@ export default function HomeScreen() {
                     sortMode={sortMode}
                     onMarkDone={handleMarkDone}
                     onDelete={handleDelete}
-                    onEdit={(item) =>
-                        router.push({
-                            pathname: "/create-entry",
-                            params: {
-                                mode: "edit",
-                                type: "task",
-                                id: item._id,
-                                title: item.title,
-                                description: item.description || "",
-                                dueDate: item.dueDate,
-                                reminder: item.reminder
-                                    ? new Date(item.reminder).toISOString()
-                                    : "",
-                                tags: Array.isArray(item.tags) ? item.tags.join(",") : "",
-                                priority: item.priority || "Medium",
-                                target: item.target?.toString() || "",
-                                unit: item.unit || "",
-                                habitType: item.type || "",
-                            },
-                        })
-                    }
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
                     /* Show empty state when no tasks exist */

@@ -94,6 +94,7 @@ export default function CompletedTasksScreen() {
                 markDoneLabel="↩️ Undo Complete"
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
+                showEdit={false}
                 /* Show empty state when no completed tasks exist */
                 ListEmptyComponent={<Text style={styles.empty}>No completed tasks yet.</Text>}
                 /* Add bottom padding for navigation and scrolling */

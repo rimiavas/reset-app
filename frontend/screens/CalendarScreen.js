@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
+import EmptyState from "../components/EmptyState";
 import { useFocusEffect, useRouter } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
@@ -179,8 +180,6 @@ export default function CalendarScreen() {
                 }
             } catch (err) {
                 console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-            } finally {
-                setSelectedHabitId(null);
             }
         } else {
             Alert.alert(
@@ -203,8 +202,6 @@ export default function CalendarScreen() {
                                 }
                             } catch (err) {
                                 console.error(`Error deleting ${route.slice(0, -1)}:`, err);
-                            } finally {
-                                setSelectedHabitId(null);
                             }
                         },
                     },
@@ -225,20 +222,6 @@ export default function CalendarScreen() {
             console.error("Error marking task done:", err);
         }
     };
-
-    // ================
-    // EMPTY STATE COMPONENT
-    // ================
-    function EmptyState({ label, onPress }) {
-        return (
-            <View style={styles.EmptyContainer}>
-                <Text style={styles.EmptyText}>No {label.toLowerCase()} yet.</Text>
-                <TouchableOpacity onPress={onPress} style={styles.EmptyButton}>
-                    <Text style={styles.EmptyButtonText}>+ Create {label}</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
 
     // ================
     // MAIN RENDER
@@ -347,27 +330,6 @@ export default function CalendarScreen() {
                         sortMode={sortMode}
                         onMarkDone={handleMarkDone}
                         onDelete={handleDelete}
-                        onEdit={(item) =>
-                            router.push({
-                                pathname: "/create-entry",
-                                params: {
-                                    mode: "edit",
-                                    type: "task",
-                                    id: item._id,
-                                    title: item.title,
-                                    description: item.description || "",
-                                    dueDate: item.dueDate,
-                                    reminder: item.reminder
-                                        ? new Date(item.reminder).toISOString()
-                                        : "",
-                                    tags: Array.isArray(item.tags) ? item.tags.join(",") : "",
-                                    priority: item.priority || "Medium",
-                                    target: item.target?.toString() || "",
-                                    unit: item.unit || "",
-                                    habitType: item.type || "",
-                                },
-                            })
-                        }
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
                         ListEmptyComponent={
