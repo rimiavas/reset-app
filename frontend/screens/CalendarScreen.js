@@ -5,12 +5,12 @@ import {
     StyleSheet,
     TouchableOpacity,
     ScrollView,
-    Pressable,
     Platform,
     Alert,
     Dimensions,
 } from "react-native";
 import TaskList from "../components/Lists/TaskList";
+import HabitGrid from "../components/Lists/HabitGrid";
 import { useFocusEffect, useRouter } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
@@ -27,8 +27,6 @@ import habitStyles from "../constants/StyleSheet/habitStyles";
 import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import calendarStyles from "../constants/StyleSheet/calendarStyles.js";
-import { sortTasks, getPriorityStyle } from "../constants/utility/taskUtils";
-
 export default function CalendarScreen() {
     // ================
     // STATE MANAGEMENT
@@ -39,11 +37,7 @@ export default function CalendarScreen() {
     const [habits, setHabits] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
 
-    const [selectedHabitId, setSelectedHabitId] = useState(null);
     const [sortMode, setSortMode] = useState("dueDate");
-    const isToday = isSameDay(selectedDate, new Date());
-    const numColumns =
-        Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
     const router = useRouter();
 
     // Animation for tab
@@ -329,7 +323,7 @@ export default function CalendarScreen() {
                 </View>
             </View>
 
-            {/* ---- List Section ---- */}
+            {/* ---- List/Grid Section ---- */}
             {view === "tasks" ? (
                 <>
                     {/* Sort + Completed Controls */}
@@ -390,114 +384,14 @@ export default function CalendarScreen() {
                     />
                 </>
             ) : (
-                // ========
                 // HABITS GRID
-                // =========
-                <View style={styles.habitGrid}>
-                    {Array.from({
-                        length: Math.ceil(filteredHabits.length / numColumns),
-                    }).map((_, rowIndex) => (
-                        <View key={rowIndex} style={styles.habitRow}>
-                            {filteredHabits
-                                .slice(rowIndex * numColumns, rowIndex * numColumns + numColumns)
-                                .map((habit) => {
-                                    const dateStr = selectedDate.toISOString().split("T")[0];
-                                    const loggedValue =
-                                        habit.log && habit.log[dateStr] ? habit.log[dateStr] : 0;
-                                    return (
-                                        <View
-                                            key={habit._id}
-                                            style={[styles.habitCard, { position: "relative" }]}>
-                                            <View style={styles.habitHeader}>
-                                                <Text style={styles.habitTitle}>{habit.title}</Text>
-                                                <TouchableOpacity
-                                                    onPress={() => setSelectedHabitId(habit._id)}>
-                                                    <Text style={styles.dots}>⋯</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                            {selectedHabitId === habit._id && (
-                                                <>
-                                                    <Pressable
-                                                        onPress={() => setSelectedHabitId(null)}
-                                                        style={StyleSheet.absoluteFillObject}
-                                                    />
-                                                    <View style={styles.menu}>
-                                                        <TouchableOpacity
-                                                            onPress={() => {
-                                                                setSelectedHabitId(null);
-                                                                router.push({
-                                                                    pathname: "/create-entry",
-                                                                    params: {
-                                                                        mode: "edit",
-                                                                        type: "habit",
-                                                                        id: habit._id,
-                                                                        title: habit.title,
-                                                                        target:
-                                                                            habit.target?.toString() ||
-                                                                            "",
-                                                                        unit: habit.unit || "",
-                                                                        habitType: habit.type || "",
-                                                                    },
-                                                                });
-                                                            }}>
-                                                            <Text style={styles.menuItem}>
-                                                                ✏️ Edit
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                        <TouchableOpacity
-                                                            onPress={() => {
-                                                                setSelectedHabitId(null);
-                                                                handleDelete(habit._id);
-                                                            }}>
-                                                            <Text style={styles.menuItem}>
-                                                                🗑️ Delete
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                </>
-                                            )}
-                                            <View style={styles.counterRow}>
-                                                <TouchableOpacity
-                                                    style={[
-                                                        styles.counterBtn,
-                                                        !isToday && { opacity: 0.3 },
-                                                    ]}
-                                                    onPress={() =>
-                                                        isToday && updateHabit(habit._id, -1)
-                                                    }
-                                                    disabled={!isToday}>
-                                                    <Text style={styles.counterText}>−</Text>
-                                                </TouchableOpacity>
-                                                <View>
-                                                    <Text style={styles.counterValue}>
-                                                        {loggedValue} / {habit.target || 0}
-                                                    </Text>
-                                                    <Text style={styles.unitText}>
-                                                        {habit.unit}
-                                                    </Text>
-                                                </View>
-                                                <TouchableOpacity
-                                                    style={[
-                                                        styles.counterBtn,
-                                                        !isToday && { opacity: 0.3 },
-                                                    ]}
-                                                    onPress={() =>
-                                                        isToday && updateHabit(habit._id, 1)
-                                                    }
-                                                    disabled={!isToday}>
-                                                    <Text style={styles.counterText}>＋</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                            <View style={styles.habitTagContainer}>
-                                                <Text style={styles.habitTag}>
-                                                    {habit.type || "habit"}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    );
-                                })}
-                        </View>
-                    ))}
+                <>
+                    <HabitGrid
+                        habits={filteredHabits}
+                        onDelete={handleDelete}
+                        onUpdate={updateHabit}
+                        date={selectedDate}
+                    />
                     {filteredHabits.length === 0 && (
                         <EmptyState
                             label="Habit"
@@ -509,7 +403,7 @@ export default function CalendarScreen() {
                             }
                         />
                     )}
-                </View>
+                </>
             )}
         </View>
     );
@@ -533,7 +427,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#f9fafb",
         paddingTop: 20,
         paddingHorizontal: 20,
-        paddingHorizontal: 16,
     },
 
     addButton: {

@@ -5,6 +5,7 @@ import { isSameDay } from "date-fns";
 import habitStyles from "../../constants/StyleSheet/habitStyles";
 import menuStyles from "../../constants/StyleSheet/menuStyles";
 import taskCardStyles from "../../constants/StyleSheet/taskCardStyles";
+import { getLoggedValue } from "../../constants/utility/habitUtils";
 
 // ==================================
 // HABIT GRID COMPONENT
@@ -22,7 +23,6 @@ export default function HabitGrid({ habits = [], onDelete, onUpdate, date = new 
         Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
     // helpers for logging date
     const isToday = isSameDay(date, new Date());
-    const dateStr = date.toISOString().split("T")[0];
     // ==================
     // MAIN RENDER
     // ==================
@@ -34,8 +34,7 @@ export default function HabitGrid({ habits = [], onDelete, onUpdate, date = new 
                     {habits
                         .slice(rowIndex * numColumns, rowIndex * numColumns + numColumns)
                         .map((habit) => {
-                            const loggedValue =
-                                habit.log && habit.log[dateStr] ? habit.log[dateStr] : 0;
+                            const loggedValue = getLoggedValue(habit, date);
                             return (
                                 <View
                                     key={habit._id}

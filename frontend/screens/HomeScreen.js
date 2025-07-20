@@ -1,16 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Pressable,
-    Platform,
-    Alert,
-    Dimensions,
-    Image,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert, Image } from "react-native";
 import TaskList from "../components/Lists/TaskList";
+import HabitGrid from "../components/Lists/HabitGrid";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
 import Animated, {
@@ -48,9 +39,6 @@ export default function HomeScreen() {
     // Stores the width of each tab for animation calculations
     const [tabWidth, setTabWidth] = useState(0);
 
-    // Track which task/habit has its 3-dot menu open
-    const [selectedHabitId, setSelectedHabitId] = useState(null);
-
     // Router instance for navigation
     const router = useRouter();
 
@@ -63,14 +51,6 @@ export default function HomeScreen() {
 
     // Controls how tasks are sorted (dueDate or priority)
     const [sortMode, setSortMode] = useState("dueDate");
-
-    // =================
-    // RESPONSIVE LAYOUT
-    // =================
-
-    // Calculate number of columns for habits grid based on screen width
-    const numColumns =
-        Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
 
     // =================
     // DATA FETCHING
@@ -298,7 +278,7 @@ export default function HomeScreen() {
             </View>
 
             {/* =================
-                TASKS VIEW CONTROLS
+                SORT AND COMPLETED
                 ================= */}
             {view === "tasks" && (
                 <>
@@ -368,132 +348,9 @@ export default function HomeScreen() {
                     }
                 />
             ) : (
-                // =================
                 //   HABITS GRID VIEW
-                // =================
-                <View style={styles.habitGrid}>
-                    {/* Create rows for habits grid based on numColumns */}
-                    {Array.from({ length: Math.ceil(habits.length / numColumns) }).map(
-                        (_, rowIndex) => (
-                            <View key={rowIndex} style={styles.habitRow}>
-                                {/* Slice habits array for current row */}
-                                {habits
-                                    .slice(
-                                        rowIndex * numColumns,
-                                        rowIndex * numColumns + numColumns
-                                    )
-                                    .map((habit) => {
-                                        // Calculate today's logged value for this habit
-                                        const todayStr = new Date().toISOString().split("T")[0];
-                                        const loggedValue =
-                                            habit.log && habit.log[todayStr]
-                                                ? habit.log[todayStr]
-                                                : 0;
-
-                                        return (
-                                            <View
-                                                key={habit._id}
-                                                style={[
-                                                    styles.habitCard,
-                                                    { position: "relative" },
-                                                ]}>
-                                                {/* Habit Header: Title and Menu Button */}
-                                                <View style={styles.habitHeader}>
-                                                    <Text style={styles.habitTitle}>
-                                                        {habit.title}
-                                                    </Text>
-                                                    <TouchableOpacity
-                                                        onPress={() =>
-                                                            setSelectedHabitId(habit._id)
-                                                        }>
-                                                        <Text style={styles.dots}>⋯</Text>
-                                                    </TouchableOpacity>
-                                                </View>
-
-                                                {/* Habit Menu (Edit/Delete) */}
-                                                {selectedHabitId === habit._id && (
-                                                    <>
-                                                        {/* Overlay to close menu */}
-                                                        <Pressable
-                                                            onPress={() => setSelectedHabitId(null)}
-                                                            style={StyleSheet.absoluteFillObject}
-                                                        />
-                                                        <View style={styles.menu}>
-                                                            <TouchableOpacity
-                                                                onPress={() => {
-                                                                    setSelectedHabitId(null);
-                                                                    router.push({
-                                                                        pathname: "/create-entry",
-                                                                        params: {
-                                                                            mode: "edit",
-                                                                            type: "habit",
-                                                                            id: habit._id,
-                                                                            title: habit.title,
-                                                                            target:
-                                                                                habit.target?.toString() ||
-                                                                                "",
-                                                                            unit: habit.unit || "",
-                                                                            habitType:
-                                                                                habit.type || "",
-                                                                        },
-                                                                    });
-                                                                }}>
-                                                                <Text style={styles.menuItem}>
-                                                                    ✏️ Edit
-                                                                </Text>
-                                                            </TouchableOpacity>
-                                                            <TouchableOpacity
-                                                                onPress={() => {
-                                                                    setSelectedHabitId(null);
-                                                                    handleDelete(habit._id);
-                                                                }}>
-                                                                <Text style={styles.menuItem}>
-                                                                    🗑️ Delete
-                                                                </Text>
-                                                            </TouchableOpacity>
-                                                        </View>
-                                                    </>
-                                                )}
-
-                                                {/* Habit Counter Controls */}
-                                                <View style={styles.counterRow}>
-                                                    {/* Decrease Button */}
-                                                    <TouchableOpacity
-                                                        style={styles.counterBtn}
-                                                        onPress={() => updateHabit(habit._id, -1)}>
-                                                        <Text style={styles.counterText}>−</Text>
-                                                    </TouchableOpacity>
-
-                                                    {/* Progress Display */}
-                                                    <View>
-                                                        <Text style={styles.counterValue}>
-                                                            {loggedValue} / {habit.target || 0}
-                                                        </Text>
-                                                        <Text style={styles.unitText}>
-                                                            {habit.unit}
-                                                        </Text>
-                                                    </View>
-
-                                                    {/* Increase Button */}
-                                                    <TouchableOpacity
-                                                        style={styles.counterBtn}
-                                                        onPress={() => updateHabit(habit._id, 1)}>
-                                                        <Text style={styles.counterText}>＋</Text>
-                                                    </TouchableOpacity>
-                                                </View>
-
-                                                {/* Habit Type/Category Tag */}
-                                                <View style={styles.habitTagContainer}>
-                                                    <Text style={styles.habitTag}>
-                                                        {habit.type || "habit"}
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                        );
-                                    })}
-                            </View>
-                        )
-                    )}
+                <>
+                    <HabitGrid habits={habits} onDelete={handleDelete} onUpdate={updateHabit} />
 
                     {/* Show empty state when no habits exist */}
                     {habits.length === 0 && (
@@ -507,7 +364,7 @@ export default function HomeScreen() {
                             }
                         />
                     )}
-                </View>
+                </>
             )}
         </View>
     );
