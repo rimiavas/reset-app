@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, Pressable, Dimensions } from 
 import { isSameDay } from "date-fns";
 import habitStyles from "../../constants/StyleSheet/habitStyles";
 import menuStyles from "../../constants/StyleSheet/menuStyles";
-import taskCardStyles from "../../constants/StyleSheet/taskCardStyles";
 import { getLoggedValue } from "../../constants/utility/habitUtils";
 import DefaultEmpty from "./ListEmptyComponent";
 
@@ -141,5 +140,4 @@ export default function HabitGrid({
 const styles = StyleSheet.create({
     ...habitStyles,
     ...menuStyles,
-    dots: taskCardStyles.dots,
 });

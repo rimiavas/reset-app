@@ -25,6 +25,18 @@ const menuStyles = StyleSheet.create({
         paddingHorizontal: 10,
         color: "#111827",
     },
+    menuButton: {
+        padding: 10,
+        minWidth: 40,
+        minHeight: 40,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    dots: {
+        fontSize: 20,
+        color: "#ABCEF5",
+        lineHeight: 5,
+    },
 });
 
 export default menuStyles;

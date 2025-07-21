@@ -44,13 +44,6 @@ export default function TaskList({
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
                 <View style={{ position: "relative" }}>
-                    {selectedTaskId === item._id && (
-                        <Pressable
-                            onPress={() => setSelectedTaskId(null)}
-                            style={StyleSheet.absoluteFillObject}
-                        />
-                    )}
-
                     {/* Task Card */}
                     <View style={styles.taskCard}>
                         <View style={styles.taskHeader}>
@@ -70,7 +63,9 @@ export default function TaskList({
                             </View>
 
                             {/* Three-dot Menu Button */}
-                            <TouchableOpacity onPress={() => setSelectedTaskId(item._id)}>
+                            <TouchableOpacity
+                                style={styles.menuButton}
+                                onPress={() => setSelectedTaskId(item._id)}>
                                 <Text style={styles.dots}>⋯</Text>
                             </TouchableOpacity>
                         </View>
@@ -119,6 +114,12 @@ export default function TaskList({
                             </Text>
                         </View>
                     </View>
+                    {selectedTaskId === item._id && (
+                        <Pressable
+                            onPress={() => setSelectedTaskId(null)}
+                            style={StyleSheet.absoluteFillObject}
+                        />
+                    )}
                 </View>
             )}
             /* Pull-to-refresh functionality */

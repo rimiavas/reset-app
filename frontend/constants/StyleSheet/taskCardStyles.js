@@ -38,11 +38,6 @@ const taskCardStyles = StyleSheet.create({
         textTransform: "capitalize",
         width: "100%",
     },
-    dots: {
-        fontSize: 20,
-        color: "#ABCEF5",
-        lineHeight: 5,
-    },
     taskDescription: {
         fontFamily: "Poppins",
         fontSize: 10,
