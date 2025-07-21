@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
@@ -78,7 +78,7 @@ export default function CompletedTasksScreen() {
     // =================
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             {/* =================
                 NAVIGATION + HEADER
                 ================= */}
@@ -106,7 +106,7 @@ export default function CompletedTasksScreen() {
                 /* Add bottom padding for navigation and scrolling */
                 contentContainerStyle={{ paddingBottom: 60 }}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 

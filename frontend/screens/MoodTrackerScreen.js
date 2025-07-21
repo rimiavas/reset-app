@@ -7,9 +7,9 @@ import {
     ScrollView,
     RefreshControl,
     TextInput,
-    Dimensions,
     Pressable,
     Platform,
+    SafeAreaView,
 } from "react-native";
 import Animated, {
     useSharedValue,
@@ -19,6 +19,7 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import calendarStyles from "../constants/StyleSheet/calendarStyles";
+const DATE_ITEM_WIDTH = StyleSheet.flatten(calendarStyles.dateButton).width;
 import { useFocusEffect } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
@@ -62,15 +63,18 @@ export default function MoodTrackerScreen() {
     };
 
     useEffect(() => {
-        if (scrollRef.current && getDates().length) {
-            const todayIndex = getDates().findIndex((d) => isSameDay(d, new Date()));
-            if (todayIndex > 0) {
-                scrollRef.current.scrollTo({
-                    x: Math.max(0, (todayIndex - 4) * 50),
-                    animated: false,
-                });
+        const timer = setTimeout(() => {
+            if (scrollRef.current && getDates().length) {
+                const todayIndex = getDates().findIndex((d) => isSameDay(d, new Date()));
+                if (todayIndex > 0) {
+                    scrollRef.current.scrollTo({
+                        x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
+                        animated: false,
+                    });
+                }
             }
-        }
+        }, 0);
+        return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {
@@ -131,14 +135,14 @@ export default function MoodTrackerScreen() {
         const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
         if (scrollRef.current && todayIndex > -1) {
             scrollRef.current.scrollTo({
-                x: Math.max(0, (todayIndex - 4) * 50),
+                x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
                 animated: true,
             });
         }
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             {/* Fixed Top Section */}
             <View>
                 {/* Date Picker Row */}
@@ -306,7 +310,7 @@ export default function MoodTrackerScreen() {
                 <Text style={styles.subheading}>Past Entries</Text>
                 <MoodEntriesList entries={entries} selectedDate={selectedDate} viewAll={viewAll} />
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -437,9 +441,9 @@ const styles = StyleSheet.create({
         fontFamily: "Inter",
     },
     statsHeader: {
-        flexDirection: "row",
+        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
         marginTop: 24,
         marginBottom: 8,
     },
@@ -447,6 +451,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         backgroundColor: "#ffffff",
         borderRadius: 10,
+        marginTop: 8,
         marginBottom: 20,
         alignSelf: "center",
         padding: 0,

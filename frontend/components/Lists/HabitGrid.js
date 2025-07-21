@@ -37,6 +37,12 @@ export default function HabitGrid({
     return (
         //Habits grid
         <View style={styles.habitGrid}>
+            {selectedHabitId && (
+                <Pressable
+                    style={[StyleSheet.absoluteFillObject, { zIndex: 10 }]}
+                    onPress={() => setSelectedHabitId(null)}
+                />
+            )}
             {/* If no habits, show empty component */}
             {/* Otherwise, render habits in a grid */}
             {habits.length === 0 ? (
@@ -63,11 +69,7 @@ export default function HabitGrid({
                                         </View>
                                         {selectedHabitId === habit._id && (
                                             <>
-                                                <Pressable
-                                                    onPress={() => setSelectedHabitId(null)}
-                                                    style={StyleSheet.absoluteFillObject}
-                                                />
-                                                <View style={styles.menu}>
+                                                <View style={[styles.menu, styles.habitMenu]}>
                                                     <TouchableOpacity
                                                         onPress={() => {
                                                             setSelectedHabitId(null);
@@ -140,4 +142,8 @@ export default function HabitGrid({
 const styles = StyleSheet.create({
     ...habitStyles,
     ...menuStyles,
+
+    habitMenu: {
+        top: 20,
+    },
 });

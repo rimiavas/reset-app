@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     Platform,
     ScrollView,
+    SafeAreaView,
 } from "react-native";
 import Animated, {
     useSharedValue,
@@ -94,6 +95,8 @@ export default function CreateEntryScreen() {
 
     // Other
     const [showDueDatePicker, setShowDueDatePicker] = useState(false);
+    const [showReminderDatePicker, setShowReminderDatePicker] = useState(false);
+    const [showReminderTimePicker, setShowReminderTimePicker] = useState(false);
     const [errors, setErrors] = useState({});
     const router = useRouter();
 
@@ -259,182 +262,242 @@ export default function CreateEntryScreen() {
     // MAIN RENDER
     // ================
     return (
-        <ScrollView style={styles.container}>
-            {/* ==== Header ==== */}
-            <View style={styles.headerRow}>
-                <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-                    <Text style={styles.backText}>← Back</Text>
-                </TouchableOpacity>
-                <Text style={styles.heading}>
-                    {isEditing
-                        ? `Edit ${type === "task" ? "Task" : "Habit"}`
-                        : `Create New ${type === "task" ? "Task" : "Habit"}`}
-                </Text>
-                <View style={{ width: 72 }} />
-            </View>
-
-            {/* ==== Type Toggle ==== */}
-            {!isEditing && (
-                <View
-                    style={styles.tabRow}
-                    onLayout={(e) => setTabWidth(e.nativeEvent.layout.width / 2)}>
-                    <Animated.View style={[styles.animatedBg, typeBgStyle]} />
-                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setType("task")}>
-                        <Text style={[styles.tabText, type === "task" && styles.activeTabText]}>
-                            Task
-                        </Text>
+        <SafeAreaView style={styles.safeArea}>
+            <ScrollView style={styles.container}>
+                {/* ==== Header ==== */}
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+                        <Text style={styles.backText}>← Back</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.tabTouchable} onPress={() => setType("habit")}>
-                        <Text style={[styles.tabText, type === "habit" && styles.activeTabText]}>
-                            Habit
-                        </Text>
-                    </TouchableOpacity>
+                    <Text style={styles.heading}>
+                        {isEditing
+                            ? `Edit ${type === "task" ? "Task" : "Habit"}`
+                            : `Create New ${type === "task" ? "Task" : "Habit"}`}
+                    </Text>
+                    <View style={{ width: 72 }} />
                 </View>
-            )}
 
-            {/* ==== Title ==== */}
-            <TextInput
-                style={[
-                    styles.input,
-                    errors.title && styles.errorInput,
-                    { borderColor: errors.title ? "#EF4444" : "#2196F3" },
-                ]}
-                placeholder={`Title* (e.g. ${type === "task" ? "Finish Project" : "Drink Water"})`}
-                value={title}
-                onChangeText={setTitle}
-                autoFocus
-            />
-            {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
-
-            {/* ==== Task Fields ==== */}
-            {type === "task" && (
-                <>
-                    <TextInput
-                        style={[styles.input, styles.textArea]}
-                        placeholder="Description (optional, e.g. details for your task)"
-                        value={description}
-                        onChangeText={setDescription}
-                        multiline
-                    />
-
-                    {/* Dates - Web vs Mobile */}
-                    {Platform.OS === "web" ? (
-                        <>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Due Date* (DD/MM/YYYY)"
-                                value={dueDateInput}
-                                onChangeText={(text) => setDueDateInput(formatDateInput(text))}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Reminder Date (DD/MM/YYYY)"
-                                value={reminderDateInput}
-                                onChangeText={(text) => setReminderDateInput(formatDateInput(text))}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Reminder Time (HH:mm)"
-                                value={reminderTimeInput}
-                                onChangeText={(text) => setReminderTimeInput(formatTimeInput(text))}
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <TouchableOpacity
-                                onPress={() => setShowDueDatePicker(true)}
-                                style={styles.dateButton}>
-                                <Text style={styles.dateButtonText}>Pick Due Date</Text>
-                            </TouchableOpacity>
-                            {showDueDatePicker && (
-                                <DateTimePicker
-                                    value={dueDate}
-                                    mode="date"
-                                    display="default"
-                                    onChange={(e, selectedDate) => {
-                                        setShowDueDatePicker(false);
-                                        if (selectedDate) setDueDate(selectedDate);
-                                    }}
-                                />
-                            )}
-                        </>
-                    )}
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Tags (comma separated, e.g. uni, urgent)"
-                        value={tags}
-                        onChangeText={setTags}
-                    />
-
-                    {/* ==== Priority Toggle ==== */}
+                {/* ==== Type Toggle ==== */}
+                {!isEditing && (
                     <View
-                        style={styles.priorityRow}
-                        onLayout={(e) => setPriorityWidth(e.nativeEvent.layout.width / 3)}>
-                        <Animated.View style={[styles.priorityBg, priorityBgStyle]} />
-                        {["Low", "Medium", "High"].map((level) => (
-                            <TouchableOpacity
-                                key={level}
-                                style={styles.priorityTouchable}
-                                onPress={() => setPriority(level)}>
-                                <Text
-                                    style={[
-                                        styles.priorityText,
-                                        priority === level && styles.activePriorityText,
-                                    ]}>
-                                    {level}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                        style={styles.tabRow}
+                        onLayout={(e) => setTabWidth(e.nativeEvent.layout.width / 2)}>
+                        <Animated.View style={[styles.animatedBg, typeBgStyle]} />
+                        <TouchableOpacity
+                            style={styles.tabTouchable}
+                            onPress={() => setType("task")}>
+                            <Text style={[styles.tabText, type === "task" && styles.activeTabText]}>
+                                Task
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.tabTouchable}
+                            onPress={() => setType("habit")}>
+                            <Text
+                                style={[styles.tabText, type === "habit" && styles.activeTabText]}>
+                                Habit
+                            </Text>
+                        </TouchableOpacity>
                     </View>
-                </>
-            )}
+                )}
 
-            {/* ==== Habit Fields ==== */}
-            {type === "habit" && (
-                <>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Habit Type (optional, e.g. hydration, sleep)"
-                        value={habitType}
-                        onChangeText={setHabitType}
-                    />
-                    <TextInput
-                        style={[
-                            styles.input,
-                            errors.habitTarget && styles.errorInput,
-                            { borderColor: errors.habitTarget ? "#EF4444" : "#2196F3" },
-                        ]}
-                        placeholder="Target* (e.g. 8)"
-                        keyboardType="numeric"
-                        value={habitTarget}
-                        onChangeText={setHabitTarget}
-                    />
-                    {errors.habitTarget && (
-                        <Text style={styles.errorText}>{errors.habitTarget}</Text>
-                    )}
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Unit (e.g. cups, hours, steps)"
-                        value={habitUnit}
-                        onChangeText={setHabitUnit}
-                    />
-                </>
-            )}
+                {/* ==== Title ==== */}
+                <TextInput
+                    style={[
+                        styles.input,
+                        errors.title && styles.errorInput,
+                        { borderColor: errors.title ? "#EF4444" : "#2196F3" },
+                    ]}
+                    placeholder={`Title* (e.g. ${
+                        type === "task" ? "Finish Project" : "Drink Water"
+                    })`}
+                    value={title}
+                    onChangeText={setTitle}
+                    autoFocus
+                />
+                {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
 
-            {/* ==== Submit Button ==== */}
-            <TouchableOpacity
-                style={[
-                    styles.submitBtn,
-                    (!title.trim() || (type === "habit" && !habitTarget.trim())) && {
-                        opacity: 0.5,
-                    },
-                ]}
-                onPress={handleSubmit}
-                disabled={!title.trim() || (type === "habit" && !habitTarget.trim())}>
-                <Text style={styles.submitText}>{isEditing ? "Save Changes" : "Create"}</Text>
-            </TouchableOpacity>
-        </ScrollView>
+                {/* ==== Task Fields ==== */}
+                {type === "task" && (
+                    <>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Description (optional, e.g. details for your task)"
+                            value={description}
+                            onChangeText={setDescription}
+                            multiline
+                        />
+
+                        {/* Dates - Web vs Mobile */}
+                        {Platform.OS === "web" ? (
+                            <>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Due Date* (DD/MM/YYYY)"
+                                    value={dueDateInput}
+                                    onChangeText={(text) => setDueDateInput(formatDateInput(text))}
+                                />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Reminder Date (DD/MM/YYYY)"
+                                    value={reminderDateInput}
+                                    onChangeText={(text) =>
+                                        setReminderDateInput(formatDateInput(text))
+                                    }
+                                />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Reminder Time (HH:mm)"
+                                    value={reminderTimeInput}
+                                    onChangeText={(text) =>
+                                        setReminderTimeInput(formatTimeInput(text))
+                                    }
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <TouchableOpacity
+                                    onPress={() => setShowDueDatePicker(true)}
+                                    style={styles.dateButton}>
+                                    <Text style={styles.dateButtonText}>
+                                        Pick Due Date - {formatDate(dueDate)}
+                                    </Text>
+                                </TouchableOpacity>
+                                {showDueDatePicker && (
+                                    <DateTimePicker
+                                        value={dueDate}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(e, selectedDate) => {
+                                            setShowDueDatePicker(false);
+                                            if (selectedDate) setDueDate(selectedDate);
+                                        }}
+                                    />
+                                )}
+                            </>
+                        )}
+                        <TouchableOpacity
+                            onPress={() => setShowReminderDatePicker(true)}
+                            style={styles.dateButton}>
+                            <Text style={styles.dateButtonText}>Pick Reminder Date</Text>
+                        </TouchableOpacity>
+                        {showReminderDatePicker && (
+                            <DateTimePicker
+                                value={reminder || new Date()}
+                                mode="date"
+                                display="default"
+                                onChange={(e, selectedDate) => {
+                                    setShowReminderDatePicker(false);
+                                    if (selectedDate) {
+                                        const newDate = new Date(selectedDate);
+                                        if (reminder) {
+                                            newDate.setHours(reminder.getHours());
+                                            newDate.setMinutes(reminder.getMinutes());
+                                        }
+                                        setReminder(newDate);
+                                    }
+                                }}
+                            />
+                        )}
+
+                        <TouchableOpacity
+                            onPress={() => setShowReminderTimePicker(true)}
+                            style={styles.dateButton}>
+                            <Text style={styles.dateButtonText}>Pick Reminder Time</Text>
+                        </TouchableOpacity>
+                        {showReminderTimePicker && (
+                            <DateTimePicker
+                                value={reminder || new Date()}
+                                mode="time"
+                                display="default"
+                                onChange={(e, selectedDate) => {
+                                    setShowReminderTimePicker(false);
+                                    if (selectedDate) {
+                                        const newDate = reminder ? new Date(reminder) : new Date();
+                                        newDate.setHours(selectedDate.getHours());
+                                        newDate.setMinutes(selectedDate.getMinutes());
+                                        setReminder(newDate);
+                                    }
+                                }}
+                            />
+                        )}
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Tags (comma separated, e.g. uni, urgent)"
+                            value={tags}
+                            onChangeText={setTags}
+                        />
+
+                        {/* ==== Priority Toggle ==== */}
+                        <View
+                            style={styles.priorityRow}
+                            onLayout={(e) => setPriorityWidth(e.nativeEvent.layout.width / 3)}>
+                            <Animated.View style={[styles.priorityBg, priorityBgStyle]} />
+                            {["Low", "Medium", "High"].map((level) => (
+                                <TouchableOpacity
+                                    key={level}
+                                    style={styles.priorityTouchable}
+                                    onPress={() => setPriority(level)}>
+                                    <Text
+                                        style={[
+                                            styles.priorityText,
+                                            priority === level && styles.activePriorityText,
+                                        ]}>
+                                        {level}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </>
+                )}
+
+                {/* ==== Habit Fields ==== */}
+                {type === "habit" && (
+                    <>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Habit Type (optional, e.g. hydration, sleep)"
+                            value={habitType}
+                            onChangeText={setHabitType}
+                        />
+                        <TextInput
+                            style={[
+                                styles.input,
+                                errors.habitTarget && styles.errorInput,
+                                { borderColor: errors.habitTarget ? "#EF4444" : "#2196F3" },
+                            ]}
+                            placeholder="Target* (e.g. 8)"
+                            keyboardType="numeric"
+                            value={habitTarget}
+                            onChangeText={setHabitTarget}
+                        />
+                        {errors.habitTarget && (
+                            <Text style={styles.errorText}>{errors.habitTarget}</Text>
+                        )}
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Unit (e.g. cups, hours, steps)"
+                            value={habitUnit}
+                            onChangeText={setHabitUnit}
+                        />
+                    </>
+                )}
+
+                {/* ==== Submit Button ==== */}
+                <TouchableOpacity
+                    style={[
+                        styles.submitBtn,
+                        (!title.trim() || (type === "habit" && !habitTarget.trim())) && {
+                            opacity: 0.5,
+                        },
+                    ]}
+                    onPress={handleSubmit}
+                    disabled={!title.trim() || (type === "habit" && !habitTarget.trim())}>
+                    <Text style={styles.submitText}>{isEditing ? "Save Changes" : "Create"}</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -444,6 +507,11 @@ export default function CreateEntryScreen() {
 const styles = StyleSheet.create({
     ...buttonStyles,
     ...tabStyles,
+
+    safeArea: {
+        flex: 1,
+        backgroundColor: "#f9fafb",
+    },
 
     // Main container styles
     container: {

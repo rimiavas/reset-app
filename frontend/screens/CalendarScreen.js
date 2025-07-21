@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    ScrollView,
+    Dimensions,
+    SafeAreaView,
+} from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
 import { useRouter } from "expo-router";
@@ -16,6 +24,7 @@ import menuStyles from "../constants/StyleSheet/menuStyles";
 import habitStyles from "../constants/StyleSheet/habitStyles";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import calendarStyles from "../constants/StyleSheet/calendarStyles.js";
+const DATE_ITEM_WIDTH = StyleSheet.flatten(calendarStyles.dateButton).width;
 import useTaskHabitData from "../hooks/useTaskHabitData";
 
 // ==================================
@@ -83,15 +92,18 @@ export default function CalendarScreen() {
     };
     // Auto-scroll to today on mount
     useEffect(() => {
-        if (scrollRef.current && getDates().length) {
-            const todayIndex = getDates().findIndex((date) => isSameDay(date, new Date()));
-            if (todayIndex > 0) {
-                scrollRef.current.scrollTo({
-                    x: Math.max(0, (todayIndex - 4) * 50),
-                    animated: false,
-                });
+        const timer = setTimeout(() => {
+            if (scrollRef.current && getDates().length) {
+                const todayIndex = getDates().findIndex((date) => isSameDay(date, new Date()));
+                if (todayIndex > 0) {
+                    scrollRef.current.scrollTo({
+                        x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
+                        animated: false,
+                    });
+                }
             }
-        }
+        }, 0);
+        return () => clearTimeout(timer);
     }, []);
 
     // Function to scroll to today's date
@@ -103,7 +115,7 @@ export default function CalendarScreen() {
         const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
         if (scrollRef.current && todayIndex > -1) {
             scrollRef.current.scrollTo({
-                x: Math.max(0, (todayIndex - 4) * 50),
+                x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
                 animated: true,
             });
         }
@@ -142,7 +154,7 @@ export default function CalendarScreen() {
     // MAIN RENDER
     // ================
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             {/* ---- Top Calendar Section ---- */}
             <View style={styles.topSection}>
                 <View style={styles.calendarContainer}>
@@ -269,7 +281,7 @@ export default function CalendarScreen() {
                     />
                 </>
             )}
-        </View>
+        </SafeAreaView>
     );
 }
 

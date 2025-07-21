@@ -63,9 +63,7 @@ export default function TaskList({
                             </View>
 
                             {/* Three-dot Menu Button */}
-                            <TouchableOpacity
-                                style={styles.menuButton}
-                                onPress={() => setSelectedTaskId(item._id)}>
+                            <TouchableOpacity onPress={() => setSelectedTaskId(item._id)}>
                                 <Text style={styles.dots}>⋯</Text>
                             </TouchableOpacity>
                         </View>

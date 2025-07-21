@@ -4,6 +4,7 @@ const habitStyles = StyleSheet.create({
     // Habit tracker styles
     habitGrid: {
         width: "100%",
+        position: "relative",
     },
     habitRow: {
         flexDirection: "row",

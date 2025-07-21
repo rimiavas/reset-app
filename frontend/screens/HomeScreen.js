@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
 import { useRouter } from "expo-router";
@@ -92,7 +92,7 @@ export default function HomeScreen() {
     // =================
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             {/* =================
                     LOGO 
                 ================= */}
@@ -187,7 +187,7 @@ export default function HomeScreen() {
                     />
                 </>
             )}
-        </View>
+        </SafeAreaView>
     );
 }
 
