@@ -39,7 +39,8 @@ const habitStyles = StyleSheet.create({
         fontWeight: "500",
         letterSpacing: 0.6,
         textTransform: "capitalize",
-        width: "100%",
+        flex: 1,
+        flexShrink: 1,
     },
     counterRow: {
         flexDirection: "row",

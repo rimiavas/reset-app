@@ -105,12 +105,17 @@ export default function HabitGrid({
                                             <TouchableOpacity
                                                 style={[
                                                     styles.counterBtn,
-                                                    !isToday && { opacity: 0.3 },
+                                                    (!isToday || loggedValue <= 0) && {
+                                                        opacity: 0.3,
+                                                    },
                                                 ]}
                                                 onPress={() =>
-                                                    isToday && onUpdate && onUpdate(habit._id, -1)
+                                                    isToday &&
+                                                    loggedValue > 0 &&
+                                                    onUpdate &&
+                                                    onUpdate(habit._id, -1)
                                                 }
-                                                disabled={!isToday}>
+                                                disabled={!isToday || loggedValue <= 0}>
                                                 <Text style={styles.counterText}>−</Text>
                                             </TouchableOpacity>
                                             <View>

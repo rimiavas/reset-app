@@ -45,7 +45,8 @@ router.patch("/log/:id", async (req, res) => {
         if (!habit) return res.status(404).json({ message: "Habit not found" });
 
         const current = habit.log.get(today) || 0;
-        habit.log.set(today, current + amount);
+        const newValue = Math.max(current + amount, 0);
+        habit.log.set(today, newValue);
         await habit.save();
 
         res.json(habit);
