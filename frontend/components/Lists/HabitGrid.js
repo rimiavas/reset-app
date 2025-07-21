@@ -80,7 +80,7 @@ export default function HabitGrid({
                                                     <TouchableOpacity
                                                         onPress={async () => {
                                                             if (onEdit) {
-                                                                await onEdit(habit);
+                                                                await onEdit(habit, "habit");
                                                             }
                                                             setSelectedHabitId(null);
                                                         }}>

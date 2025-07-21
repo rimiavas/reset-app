@@ -136,7 +136,7 @@ export default function TaskList({
                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                     ) : undefined
                 }
-                istEmptyComponent={EmptyComponent}
+                ListEmptyComponent={EmptyComponent}
                 /* Add bottom padding for navigation and scrolling */
                 contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
             />
