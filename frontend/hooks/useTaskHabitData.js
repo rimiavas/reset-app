@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Platform, Alert } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
 
 export default function useTaskHabitData() {
@@ -114,6 +114,26 @@ export default function useTaskHabitData() {
         }
     };
 
+    const router = useRouter();
+
+    const handleEdit = (item, type = "task") => {
+        const params = {
+            mode: "edit",
+            type,
+            id: item._id,
+            title: item.title,
+            description: item.description || "",
+            dueDate: item.dueDate,
+            reminder: item.reminder ? new Date(item.reminder).toISOString() : "",
+            tags: Array.isArray(item.tags) ? item.tags.join(",") : "",
+            priority: item.priority || "Medium",
+            target: item.target?.toString() || "",
+            unit: item.unit || "",
+            habitType: item.type || "",
+        };
+        router.push({ pathname: "/create-entry", params });
+    };
+
     // Return all the data and functions for use in components
     // This allows components to access tasks, habits, and utility functions
     return {
@@ -124,5 +144,6 @@ export default function useTaskHabitData() {
         handleDelete,
         handleMarkDone,
         updateHabit,
+        handleEdit,
     };
 }

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
-import EmptyState from "../components/EmptyState";
 import { useRouter } from "expo-router";
 import useTaskHabitData from "../hooks/useTaskHabitData";
 import Animated, {
@@ -16,7 +15,6 @@ import tabStyles from "../constants/StyleSheet/tabStyles";
 import taskCardStyles from "../constants/StyleSheet/taskCardStyles";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import habitStyles from "../constants/StyleSheet/habitStyles";
-import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
 import menuStyles from "../constants/StyleSheet/menuStyles";
 
 export default function HomeScreen() {
@@ -31,8 +29,16 @@ export default function HomeScreen() {
     const [quote, setQuote] = useState("");
 
     // Tasks and habits data
-    const { tasks, habits, refreshing, handleRefresh, handleDelete, handleMarkDone, updateHabit } =
-        useTaskHabitData();
+    const {
+        tasks,
+        habits,
+        refreshing,
+        handleRefresh,
+        handleDelete,
+        handleMarkDone,
+        updateHabit,
+        handleEdit,
+    } = useTaskHabitData();
 
     // Stores the width of each tab for animation calculations
     const [tabWidth, setTabWidth] = useState(0);
@@ -150,50 +156,27 @@ export default function HomeScreen() {
             )}
 
             {/* =================
-                TASKS LIST VIEW
+                LIST/GRID VIEW
                 ================= */}
             {view === "tasks" ? (
                 <TaskList
                     tasks={tasks}
                     sortMode={sortMode}
+                    onEdit={handleEdit}
                     onMarkDone={handleMarkDone}
                     onDelete={(id) => handleDelete(id, "task")}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
-                    /* Show empty state when no tasks exist */
-                    ListEmptyComponent={
-                        <EmptyState
-                            label="Task"
-                            onPress={() =>
-                                router.push({
-                                    pathname: "/create-entry",
-                                    params: { mode: "create", type: "task" },
-                                })
-                            }
-                        />
-                    }
                 />
             ) : (
                 //   HABITS GRID VIEW
                 <>
                     <HabitGrid
                         habits={habits}
+                        onEdit={handleEdit}
                         onDelete={(id) => handleDelete(id, "habit")}
                         onUpdate={updateHabit}
                     />
-
-                    {/* Show empty state when no habits exist */}
-                    {habits.length === 0 && (
-                        <EmptyState
-                            label="Habit"
-                            onPress={() =>
-                                router.push({
-                                    pathname: "/create-entry",
-                                    params: { mode: "create", type: "habit" },
-                                })
-                            }
-                        />
-                    )}
                 </>
             )}
         </View>
@@ -209,7 +192,6 @@ const styles = StyleSheet.create({
     ...taskCardStyles,
     ...buttonStyles,
     ...habitStyles,
-    ...emptyStateStyles,
     ...menuStyles,
 
     // Main container styles

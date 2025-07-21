@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Pressable, Dimensions } from "react-native";
-import { useRouter } from "expo-router";
 import { isSameDay } from "date-fns";
 import habitStyles from "../../constants/StyleSheet/habitStyles";
 import menuStyles from "../../constants/StyleSheet/menuStyles";
@@ -12,13 +11,12 @@ import { getLoggedValue } from "../../constants/utility/habitUtils";
 // displays habits in a responsive grid
 // ==================================
 
-export default function HabitGrid({ habits = [], onDelete, onUpdate, date = new Date() }) {
+export default function HabitGrid({ habits = [], onDelete, onUpdate, onEdit, date = new Date() }) {
     // ==================
     // SETUP & STATE
     // ==================
     // Track which task has its 3-dot menu open
     const [selectedHabitId, setSelectedHabitId] = useState(null);
-    const router = useRouter();
     const numColumns =
         Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
     // helpers for logging date
@@ -58,19 +56,7 @@ export default function HabitGrid({ habits = [], onDelete, onUpdate, date = new 
                                                 <TouchableOpacity
                                                     onPress={() => {
                                                         setSelectedHabitId(null);
-                                                        router.push({
-                                                            pathname: "/create-entry",
-                                                            params: {
-                                                                mode: "edit",
-                                                                type: "habit",
-                                                                id: habit._id,
-                                                                title: habit.title,
-                                                                target:
-                                                                    habit.target?.toString() || "",
-                                                                unit: habit.unit || "",
-                                                                habitType: habit.type || "",
-                                                            },
-                                                        });
+                                                        onEdit && onEdit(habit);
                                                     }}>
                                                     <Text style={styles.menuItem}>✏️ Edit</Text>
                                                 </TouchableOpacity>

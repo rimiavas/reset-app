@@ -8,10 +8,10 @@ import {
     TouchableOpacity,
     Pressable,
 } from "react-native";
-import { useRouter } from "expo-router";
 import taskCardStyles from "@/constants/StyleSheet/taskCardStyles";
 import menuStyles from "@/constants/StyleSheet/menuStyles";
 import { sortTasks, getPriorityStyle } from "@/constants/utility/taskUtils";
+import DefaultEmpty from "./ListEmptyComponent";
 
 export default function TaskList({
     tasks = [],
@@ -27,31 +27,8 @@ export default function TaskList({
 }) {
     // Track which task has its 3-dot menu open
     const [selectedTaskId, setSelectedTaskId] = useState(null);
-    const router = useRouter();
 
-    const buildEditParams = (item) => ({
-        mode: "edit",
-        type: "task",
-        id: item._id,
-        title: item.title,
-        description: item.description || "",
-        dueDate: item.dueDate,
-        reminder: item.reminder ? new Date(item.reminder).toISOString() : "",
-        tags: Array.isArray(item.tags) ? item.tags.join(",") : "",
-        priority: item.priority || "Medium",
-        target: item.target?.toString() || "",
-        unit: item.unit || "",
-        habitType: item.type || "",
-    });
-
-    const handleEdit = (item) => {
-        setSelectedTaskId(null);
-        if (onEdit) {
-            onEdit(item);
-        } else {
-            router.push({ pathname: "/create-entry", params: buildEditParams(item) });
-        }
-    };
+    const EmptyComponent = ListEmptyComponent || <DefaultEmpty type="task" />;
 
     return (
         <FlatList
@@ -99,7 +76,11 @@ export default function TaskList({
                                     </TouchableOpacity>
                                 )}
                                 {showEdit && (
-                                    <TouchableOpacity onPress={() => handleEdit(item)}>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setSelectedTaskId(null);
+                                            onEdit && onEdit(item);
+                                        }}>
                                         <Text style={styles.menuItem}>✏️ Edit</Text>
                                     </TouchableOpacity>
                                 )}
@@ -139,7 +120,7 @@ export default function TaskList({
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 ) : undefined
             }
-            ListEmptyComponent={ListEmptyComponent}
+            ListEmptyComponent={EmptyComponent}
             /* Add bottom padding for navigation and scrolling */
             contentContainerStyle={{ paddingBottom: 80, flexGrow: 1 }}
         />

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
-import EmptyState from "../components/EmptyState";
 import { useRouter } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import Animated, {
@@ -15,18 +14,26 @@ import taskCardStyles from "../constants/StyleSheet/taskCardStyles";
 import tabStyles from "../constants/StyleSheet/tabStyles";
 import menuStyles from "../constants/StyleSheet/menuStyles";
 import habitStyles from "../constants/StyleSheet/habitStyles";
-import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import calendarStyles from "../constants/StyleSheet/calendarStyles.js";
 import useTaskHabitData from "../hooks/useTaskHabitData";
+
 export default function CalendarScreen() {
     // ================
     // STATE MANAGEMENT
     // ================
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [view, setView] = useState("tasks"); // "tasks" or "habits"
-    const { tasks, habits, refreshing, handleRefresh, handleDelete, handleMarkDone, updateHabit } =
-        useTaskHabitData();
+    const {
+        tasks,
+        habits,
+        refreshing,
+        handleRefresh,
+        handleDelete,
+        handleMarkDone,
+        updateHabit,
+        handleEdit,
+    } = useTaskHabitData();
     const [sortMode, setSortMode] = useState("dueDate");
     const router = useRouter();
 
@@ -217,21 +224,11 @@ export default function CalendarScreen() {
                     <TaskList
                         tasks={filteredTasks}
                         sortMode={sortMode}
+                        onEdit={handleEdit}
                         onMarkDone={handleMarkDone}
                         onDelete={(id) => handleDelete(id, "task")}
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
-                        ListEmptyComponent={
-                            <EmptyState
-                                label="Task"
-                                onPress={() =>
-                                    router.push({
-                                        pathname: "/create-entry",
-                                        params: { mode: "create", type: "task" },
-                                    })
-                                }
-                            />
-                        }
                     />
                 </>
             ) : (
@@ -239,21 +236,11 @@ export default function CalendarScreen() {
                 <>
                     <HabitGrid
                         habits={filteredHabits}
+                        onEdit={handleEdit}
                         onDelete={(id) => handleDelete(id, "habit")}
                         onUpdate={updateHabit}
                         date={selectedDate}
                     />
-                    {filteredHabits.length === 0 && (
-                        <EmptyState
-                            label="Habit"
-                            onPress={() =>
-                                router.push({
-                                    pathname: "/create-entry",
-                                    params: { mode: "create", type: "habit" },
-                                })
-                            }
-                        />
-                    )}
                 </>
             )}
         </View>
@@ -268,7 +255,6 @@ const styles = StyleSheet.create({
     ...tabStyles,
     ...menuStyles,
     ...habitStyles,
-    ...emptyStateStyles,
     ...buttonStyles,
     ...calendarStyles,
 
