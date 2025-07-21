@@ -7,8 +7,8 @@ import {
     TouchableOpacity,
     Platform,
     ScrollView,
-    SafeAreaView,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -30,7 +30,7 @@ import {
 //============================
 // CREATE ENTRY SCREEN COMPONENT
 // This screen allows users to create or edit tasks and habits.
-// It includes fields for title, description, due date, reminder, tags, priority, and habit-specific fields.
+// It includes fields for title, description, due date, tags, priority, and habit-specific fields.
 // It also handles form validation and submission to the API.
 
 export default function CreateEntryScreen() {
@@ -47,7 +47,6 @@ export default function CreateEntryScreen() {
         title: initialTitle,
         description: initialDescription,
         dueDate: initialDueDate,
-        reminder: initialReminder,
         tags: initialTags,
         priority: initialPriority,
         target: initialTarget,
@@ -63,11 +62,10 @@ export default function CreateEntryScreen() {
     // Default to "task" if not editing or no initial type provided
     const [type, setType] = useState(initialType || "task");
 
-    // Title, description, due date, reminder, tags, and priority
+    // Title, description, due date, tags, and priority
     const [title, setTitle] = useState(initialTitle || "");
     const [description, setDescription] = useState(initialDescription || "");
     const [dueDate, setDueDate] = useState(initialDueDate ? new Date(initialDueDate) : new Date());
-    const [reminder, setReminder] = useState(initialReminder ? new Date(initialReminder) : null);
     const [tags, setTags] = useState(initialTags || "");
     const [priority, setPriority] = useState(initialPriority || "Medium");
 
@@ -86,32 +84,14 @@ export default function CreateEntryScreen() {
 
     // Inputs for date/time fields (for web)
     const [dueDateInput, setDueDateInput] = useState(formatDate(dueDate));
-    const [reminderDateInput, setReminderDateInput] = useState(
-        reminder ? formatDate(reminder) : ""
-    );
-    const [reminderTimeInput, setReminderTimeInput] = useState(
-        reminder ? formatTime(reminder) : ""
-    );
 
     // Other
     const [showDueDatePicker, setShowDueDatePicker] = useState(false);
-    const [showReminderDatePicker, setShowReminderDatePicker] = useState(false);
-    const [showReminderTimePicker, setShowReminderTimePicker] = useState(false);
     const [errors, setErrors] = useState({});
     const router = useRouter();
 
-    // ================
-    // EFFECTS
-    // ================
-    // Set initial values for date/time inputs when editing
-    useEffect(() => {
-        if (reminder) {
-            setReminderDateInput(formatDate(reminder));
-            setReminderTimeInput(formatTime(reminder));
-        }
-    }, [reminder]);
-
-    // Set initial type if editing
+    // Safe area insets for handling device notches and safe areas
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         if (mode === "edit" && initialType) {
@@ -138,13 +118,6 @@ export default function CreateEntryScreen() {
     const parseDate = (str) => {
         const [dd, mm, yyyy] = str.split("/").map(Number);
         return new Date(yyyy, mm - 1, dd);
-    };
-
-    // Parse time string in HH:mm format to hours and minutes
-    // Returns an object with hh and mm properties
-    const parseTime = (str) => {
-        const [hh, mm] = str.split(":").map(Number);
-        return { hh, mm };
     };
 
     // ================
@@ -204,19 +177,10 @@ export default function CreateEntryScreen() {
         if (!validate()) return;
 
         let parsedDueDate = dueDate;
-        let parsedReminder = reminder;
 
         if (Platform.OS === "web") {
             try {
                 if (dueDateInput) parsedDueDate = parseDate(dueDateInput);
-                if (reminderDateInput) {
-                    parsedReminder = parseDate(reminderDateInput);
-                    if (reminderTimeInput) {
-                        const { hh, mm } = parseTime(reminderTimeInput);
-                        parsedReminder.setHours(hh);
-                        parsedReminder.setMinutes(mm);
-                    }
-                }
             } catch (e) {
                 console.warn("Date parse error:", e);
             }
@@ -226,7 +190,6 @@ export default function CreateEntryScreen() {
             title,
             description,
             dueDate: parsedDueDate,
-            reminder: parsedReminder,
             tags: tags
                 .split(",")
                 .map((t) => t.trim())
@@ -262,7 +225,7 @@ export default function CreateEntryScreen() {
     // MAIN RENDER
     // ================
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
             <ScrollView style={styles.container}>
                 {/* ==== Header ==== */}
                 <View style={styles.headerRow}>
@@ -337,22 +300,6 @@ export default function CreateEntryScreen() {
                                     value={dueDateInput}
                                     onChangeText={(text) => setDueDateInput(formatDateInput(text))}
                                 />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Reminder Date (DD/MM/YYYY)"
-                                    value={reminderDateInput}
-                                    onChangeText={(text) =>
-                                        setReminderDateInput(formatDateInput(text))
-                                    }
-                                />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Reminder Time (HH:mm)"
-                                    value={reminderTimeInput}
-                                    onChangeText={(text) =>
-                                        setReminderTimeInput(formatTimeInput(text))
-                                    }
-                                />
                             </>
                         ) : (
                             <>
@@ -376,52 +323,6 @@ export default function CreateEntryScreen() {
                                 )}
                             </>
                         )}
-                        <TouchableOpacity
-                            onPress={() => setShowReminderDatePicker(true)}
-                            style={styles.dateButton}>
-                            <Text style={styles.dateButtonText}>Pick Reminder Date</Text>
-                        </TouchableOpacity>
-                        {showReminderDatePicker && (
-                            <DateTimePicker
-                                value={reminder || new Date()}
-                                mode="date"
-                                display="default"
-                                onChange={(e, selectedDate) => {
-                                    setShowReminderDatePicker(false);
-                                    if (selectedDate) {
-                                        const newDate = new Date(selectedDate);
-                                        if (reminder) {
-                                            newDate.setHours(reminder.getHours());
-                                            newDate.setMinutes(reminder.getMinutes());
-                                        }
-                                        setReminder(newDate);
-                                    }
-                                }}
-                            />
-                        )}
-
-                        <TouchableOpacity
-                            onPress={() => setShowReminderTimePicker(true)}
-                            style={styles.dateButton}>
-                            <Text style={styles.dateButtonText}>Pick Reminder Time</Text>
-                        </TouchableOpacity>
-                        {showReminderTimePicker && (
-                            <DateTimePicker
-                                value={reminder || new Date()}
-                                mode="time"
-                                display="default"
-                                onChange={(e, selectedDate) => {
-                                    setShowReminderTimePicker(false);
-                                    if (selectedDate) {
-                                        const newDate = reminder ? new Date(reminder) : new Date();
-                                        newDate.setHours(selectedDate.getHours());
-                                        newDate.setMinutes(selectedDate.getMinutes());
-                                        setReminder(newDate);
-                                    }
-                                }}
-                            />
-                        )}
-
                         <TextInput
                             style={styles.input}
                             placeholder="Tags (comma separated, e.g. uni, urgent)"
@@ -516,7 +417,6 @@ const styles = StyleSheet.create({
     // Main container styles
     container: {
         flex: 1,
-        paddingTop: 20,
         paddingHorizontal: 20,
         backgroundColor: "#f9fafb",
     },

@@ -47,9 +47,9 @@ const habitStyles = StyleSheet.create({
         margin: 10,
     },
     counterBtn: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         backgroundColor: "#E0F2FE",
         justifyContent: "center",
         alignItems: "center",

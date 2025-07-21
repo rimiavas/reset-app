@@ -24,8 +24,7 @@ Content-Type: application/json
 
 {
   "title": "Check in with myself",
-  "dueDate": "2025-05-07T10:00:00Z",
-  "remindAt": "2025-05-06T18:00:00Z"
+  "dueDate": "2025-05-07T10:00:00Z"
 }
 
 

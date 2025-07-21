@@ -28,7 +28,7 @@ const menuStyles = StyleSheet.create({
     dots: {
         fontSize: 20,
         color: "#ABCEF5",
-        lineHeight: 5,
+        lineHeight: 20,
     },
 });
 

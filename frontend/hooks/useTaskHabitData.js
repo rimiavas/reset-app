@@ -130,7 +130,6 @@ export default function useTaskHabitData() {
             title: item.title,
             description: item.description || "",
             dueDate: item.dueDate,
-            reminder: item.reminder ? new Date(item.reminder).toISOString() : "",
             tags: Array.isArray(item.tags) ? item.tags.join(",") : "",
             priority: item.priority || "Medium",
             target: item.target?.toString() || "",

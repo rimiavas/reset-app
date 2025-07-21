@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
 import { useRouter } from "expo-router";
@@ -53,6 +54,9 @@ export default function HomeScreen() {
 
     // Router instance for navigation
     const router = useRouter();
+
+    // Safe area insets for handling device notches and safe areas
+    const insets = useSafeAreaInsets();
 
     // =================
     // ANIMATION SETUP

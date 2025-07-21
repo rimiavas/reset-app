@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    Dimensions,
-    SafeAreaView,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import TaskList from "../components/Lists/TaskList";
 import HabitGrid from "../components/Lists/HabitGrid";
 import { useRouter } from "expo-router";
@@ -24,7 +17,6 @@ import menuStyles from "../constants/StyleSheet/menuStyles";
 import habitStyles from "../constants/StyleSheet/habitStyles";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import calendarStyles from "../constants/StyleSheet/calendarStyles.js";
-const DATE_ITEM_WIDTH = StyleSheet.flatten(calendarStyles.dateButton).width;
 import useTaskHabitData from "../hooks/useTaskHabitData";
 
 // ==================================
@@ -53,9 +45,11 @@ export default function CalendarScreen() {
     } = useTaskHabitData();
     const [sortMode, setSortMode] = useState("dueDate");
     const router = useRouter();
+    // Safe area insets for handling device notches and safe areas
+    const insets = useSafeAreaInsets();
 
-    // Animation for tab
     const [tabWidth, setTabWidth] = useState(0);
+    const [dateItemWidth, setDateItemWidth] = useState(0);
     const tabTranslate = useSharedValue(0);
 
     // ================
@@ -93,18 +87,21 @@ export default function CalendarScreen() {
     // Auto-scroll to today on mount
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (scrollRef.current && getDates().length) {
+            if (scrollRef.current && getDates().length && dateItemWidth) {
                 const todayIndex = getDates().findIndex((date) => isSameDay(date, new Date()));
-                if (todayIndex > 0) {
+                if (todayIndex > -1) {
+                    const screenWidth = Dimensions.get("window").width;
+                    const offset =
+                        todayIndex * dateItemWidth - (screenWidth / 2 - dateItemWidth / 2);
                     scrollRef.current.scrollTo({
-                        x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
+                        x: Math.max(0, offset),
                         animated: false,
                     });
                 }
             }
         }, 0);
         return () => clearTimeout(timer);
-    }, []);
+    }, [dateItemWidth]);
 
     // Function to scroll to today's date
     // This function sets the selected date to today and scrolls to it
@@ -113,9 +110,11 @@ export default function CalendarScreen() {
         const today = new Date();
         setSelectedDate(today);
         const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
-        if (scrollRef.current && todayIndex > -1) {
+        if (scrollRef.current && todayIndex > -1 && dateItemWidth) {
+            const screenWidth = Dimensions.get("window").width;
+            const offset = todayIndex * dateItemWidth - (screenWidth / 2 - dateItemWidth / 2);
             scrollRef.current.scrollTo({
-                x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
+                x: Math.max(0, offset),
                 animated: true,
             });
         }
@@ -154,7 +153,7 @@ export default function CalendarScreen() {
     // MAIN RENDER
     // ================
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
             {/* ---- Top Calendar Section ---- */}
             <View style={styles.topSection}>
                 <View style={styles.calendarContainer}>
@@ -202,7 +201,12 @@ export default function CalendarScreen() {
                                 <TouchableOpacity
                                     key={date.toISOString()}
                                     style={[styles.dateButton, active && styles.activeDate]}
-                                    onPress={() => setSelectedDate(date)}>
+                                    onPress={() => setSelectedDate(date)}
+                                    onLayout={(e) => {
+                                        if (!dateItemWidth) {
+                                            setDateItemWidth(e.nativeEvent.layout.width);
+                                        }
+                                    }}>
                                     <Text style={[styles.dayText, active && styles.activeDateText]}>
                                         {format(date, "EEE")}
                                     </Text>
@@ -300,7 +304,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#f9fafb",
-        paddingTop: 20,
         paddingHorizontal: 20,
     },
 

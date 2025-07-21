@@ -21,7 +21,6 @@ router.post("/", async (req, res) => {
         title: req.body.title,
         description: req.body.description,
         dueDate: req.body.dueDate,
-        reminder: req.body.reminder,
         tags: req.body.tags,
         priority: req.body.priority,
     });

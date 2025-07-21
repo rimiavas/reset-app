@@ -9,8 +9,8 @@ import {
     TextInput,
     Pressable,
     Platform,
-    SafeAreaView,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -40,6 +40,8 @@ export default function MoodTrackerScreen() {
         end: addDays(new Date(), 30),
     });
     const scrollRef = useRef();
+    // Safe area insets for handling device notches and safe areas
+    const insets = useSafeAreaInsets();
 
     const fetchEntries = useCallback(() => {
         return fetch(`${API_URL}/api/moods`)
@@ -142,7 +144,7 @@ export default function MoodTrackerScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
             {/* Fixed Top Section */}
             <View>
                 {/* Date Picker Row */}
@@ -318,7 +320,6 @@ const styles = StyleSheet.create({
     ...calendarStyles,
 
     container: {
-        paddingTop: 20,
         paddingHorizontal: 20,
         flex: 1,
         backgroundColor: "#f9fafb",

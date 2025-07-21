@@ -10,7 +10,6 @@ const taskSchema = new mongoose.Schema(
         description: { type: String },
         dueDate: { type: Date },
         completed: { type: Boolean, default: false },
-        reminder: { type: Date },
         tags: [{ type: String }],
         priority: {
             type: String,

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import TaskList from "../components/Lists/TaskList";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
@@ -27,6 +28,9 @@ export default function CompletedTasksScreen() {
 
     // Router instance for navigation
     const router = useRouter();
+
+    // Safe area insets for handling device notches and safe areas
+    const insets = useSafeAreaInsets();
 
     // =================
     // DATA FETCHING
@@ -78,7 +82,7 @@ export default function CompletedTasksScreen() {
     // =================
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
             {/* =================
                 NAVIGATION + HEADER
                 ================= */}
@@ -89,6 +93,7 @@ export default function CompletedTasksScreen() {
                 </TouchableOpacity>
                 {/* Header */}
                 <Text style={styles.heading}>Completed Tasks</Text>
+                <View style={{ width: 72 }} />
             </View>
 
             {/* =================
@@ -124,7 +129,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#f9fafb",
-        paddingTop: 20,
         paddingHorizontal: 20,
     },
     headerRow: {

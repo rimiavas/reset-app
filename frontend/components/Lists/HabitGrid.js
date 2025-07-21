@@ -63,7 +63,13 @@ export default function HabitGrid({
                                             <Text style={styles.habitTitle}>{habit.title}</Text>
                                             {/* Three-dot Menu Button */}
                                             <TouchableOpacity
-                                                onPress={() => setSelectedHabitId(habit._id)}>
+                                                onPress={() => setSelectedHabitId(habit._id)}
+                                                hitSlop={{
+                                                    top: 12,
+                                                    bottom: 12,
+                                                    left: 12,
+                                                    right: 12,
+                                                }}>
                                                 <Text style={styles.dots}>⋯</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -71,16 +77,20 @@ export default function HabitGrid({
                                             <>
                                                 <View style={[styles.menu, styles.habitMenu]}>
                                                     <TouchableOpacity
-                                                        onPress={() => {
+                                                        onPress={async () => {
+                                                            if (onEdit) {
+                                                                await onEdit(habit);
+                                                            }
                                                             setSelectedHabitId(null);
-                                                            onEdit && onEdit(habit);
                                                         }}>
                                                         <Text style={styles.menuItem}>✏️ Edit</Text>
                                                     </TouchableOpacity>
                                                     <TouchableOpacity
-                                                        onPress={() => {
+                                                        onPress={async () => {
+                                                            if (onDelete) {
+                                                                await onDelete(habit._id);
+                                                            }
                                                             setSelectedHabitId(null);
-                                                            onDelete && onDelete(habit._id);
                                                         }}>
                                                         <Text style={styles.menuItem}>
                                                             🗑️ Delete
