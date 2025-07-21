@@ -4,6 +4,12 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
+// ==================================
+//  LAYOUT
+// This is the main layout for the app
+// It sets up the theme and font loading
+// It includes the navigation and other screens
+// ==================================
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
         Rufina: require("../assets/fonts/Rufina-Regular.ttf"),

@@ -18,10 +18,18 @@ import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import calendarStyles from "../constants/StyleSheet/calendarStyles.js";
 import useTaskHabitData from "../hooks/useTaskHabitData";
 
+// ==================================
+// CALENDAR SCREEN COMPONENT
+// This screen displays a calendar view with tasks and habits
+// It allows users to select a date and view tasks or habits for that date
+// It also provides options to add new tasks or habits
+// ==================================
 export default function CalendarScreen() {
     // ================
     // STATE MANAGEMENT
     // ================
+    // Track selected date, view type (tasks/habits), and sort mode
+    // Use custom hook to manage tasks and habits data
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [view, setView] = useState("tasks"); // "tasks" or "habits"
     const {
@@ -44,6 +52,8 @@ export default function CalendarScreen() {
     // ================
     // ANIMATION EFFECTS
     // ================
+    // Update tab animation when view changes
+    // Use useEffect to trigger animation when view changes
     useEffect(() => {
         tabTranslate.value = withTiming(view === "tasks" ? 0 : 1, { duration: 300 });
     }, [view]);
@@ -55,6 +65,8 @@ export default function CalendarScreen() {
     // ================
     // DATE RANGE + SCROLL LOGIC
     // ================
+    // Generate date range for the calendar
+    // Use a ref to keep track of the scroll view for auto-scrolling
     const [dateRange, setDateRange] = useState({
         start: addDays(new Date(), -30),
         end: addDays(new Date(), 30),
@@ -82,19 +94,23 @@ export default function CalendarScreen() {
         }
     }, []);
 
+    // Function to scroll to today's date
+    // This function sets the selected date to today and scrolls to it
+    // It also adjusts the scroll position to center today's date
     const goToToday = () => {
         const today = new Date();
         setSelectedDate(today);
         const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
         if (scrollRef.current && todayIndex > -1) {
             scrollRef.current.scrollTo({
-                x: Math.max(0, (todayIndex - 4) * 50), // Adjust scroll offset if needed
+                x: Math.max(0, (todayIndex - 4) * 50),
                 animated: true,
             });
         }
     };
 
     // Dynamically extend date range when scrolling left/right
+    // This function checks the scroll position and extends the date range if needed
     const handleDateScroll = (event) => {
         const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
         if (contentOffset.x + layoutMeasurement.width > contentSize.width - 200) {
@@ -114,6 +130,9 @@ export default function CalendarScreen() {
     // ================
     // FILTERS & SORTS
     // ================
+    // Filter tasks and habits based on selected date
+    // Filter tasks by due date and habits by date
+
     const filteredTasks = Array.isArray(tasks)
         ? tasks.filter((task) => isSameDay(new Date(task.dueDate), selectedDate))
         : [];
@@ -129,6 +148,7 @@ export default function CalendarScreen() {
                 <View style={styles.calendarContainer}>
                     <View style={styles.topRow}>
                         <View style={styles.monthRow}>
+                            {/* Month Label and Today Button */}
                             <Text style={styles.monthLabel}>
                                 {format(selectedDate, "MMMM yyyy")}
                             </Text>
@@ -136,6 +156,8 @@ export default function CalendarScreen() {
                                 <Text style={styles.todayButtonText}>Go to Today</Text>
                             </TouchableOpacity>
                         </View>
+                        {/* Add Task/Habit Button */}
+                        {/* This button navigates to the create entry screen */}
                         <TouchableOpacity
                             style={styles.addButton}
                             onPress={() =>
@@ -152,6 +174,8 @@ export default function CalendarScreen() {
                             </Text>
                         </TouchableOpacity>
                     </View>
+                    {/* Date Row */}
+                    {/* This row displays the dates for the calendar */}
                     <ScrollView
                         ref={scrollRef}
                         horizontal
@@ -188,6 +212,8 @@ export default function CalendarScreen() {
                         const fullWidth = event.nativeEvent.layout.width;
                         setTabWidth(fullWidth / 2);
                     }}>
+                    {/* Animated Background for Tabs */}
+                    {/* This background animates between tasks and habits tabs */}
                     <Animated.View style={[styles.animatedBg, animatedBgStyle]} />
                     <TouchableOpacity style={styles.tabTouchable} onPress={() => setView("tasks")}>
                         <Text style={[styles.tabText, view === "tasks" && styles.activeTabText]}>

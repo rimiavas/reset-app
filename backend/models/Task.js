@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+// ==================================
+// TASK MODEL
+// defines the structure for tasks in the database
+// ==================================
 const taskSchema = new mongoose.Schema(
     {
         title: { type: String, required: true },

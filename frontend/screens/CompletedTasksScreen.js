@@ -8,6 +8,12 @@ import menuStyles from "../constants/StyleSheet/menuStyles";
 import emptyStateStyles from "../constants/StyleSheet/emptyStateStyles";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 
+//============================
+// COMPLETED SCREEN COMPONENT
+// This screen displays a list of completed tasks.
+// Users can undo the completion of tasks.
+//============================
+
 export default function CompletedTasksScreen() {
     // =================
     // STATE MANAGEMENT

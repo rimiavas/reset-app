@@ -18,6 +18,13 @@ import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import habitStyles from "../constants/StyleSheet/habitStyles";
 import menuStyles from "../constants/StyleSheet/menuStyles";
 
+//============================
+// HOME SCREEN COMPONENT
+// This screen serves as the main dashboard for the app.
+// It allows users to switch between viewing tasks and habits,
+// displays a motivational quote, and provides navigation to completed tasks.
+//============================
+
 export default function HomeScreen() {
     // =================
     // STATE MANAGEMENT

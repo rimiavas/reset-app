@@ -7,6 +7,12 @@ import CustomTabBar from "@/components/CustomTabBar";
 
 import { Colors } from "@/constants/Colors";
 
+// ==================================
+// TAB LAYOUT
+// This layout defines the structure of the tab navigation in the app
+// It includes three main tabs: Home, Calendar, and Mood
+// Each tab has its own icon and title
+// ==================================
 export default function TabLayout() {
     return (
         <Tabs

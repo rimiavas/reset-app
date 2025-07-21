@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 
+// ==================================
+// HABIT MODEL
+// defines the structure for habits in the database
+// ==================================
 const habitSchema = new mongoose.Schema(
     {
         title: { type: String, required: true },
-        completed: { type: Boolean, default: false },
-
         type: { type: String },
         target: { type: Number },
         unit: { type: String },

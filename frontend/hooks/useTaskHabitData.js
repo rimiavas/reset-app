@@ -3,6 +3,12 @@ import { Platform, Alert } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { API_URL } from "../constants/constants";
 
+// ==================================
+// useTaskHabitData Hook
+// This hook manages tasks and habits data
+// It fetches data from the API, handles refresh, delete, and update operations
+// It provides functions for components to use
+// ==================================
 export default function useTaskHabitData() {
     // Arrays to store tasks and habits data from the API
     const [tasks, setTasks] = useState([]);

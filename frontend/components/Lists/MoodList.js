@@ -4,12 +4,16 @@ import { format, isSameDay } from "date-fns";
 // ==================================
 // MOOD LIST COMPONENT
 // shows mood entries for a selected date or all time
+// It displays mood entries with their mood, note, and date
+// It is used in the mood tracker screen
 // ==================================
 
 export default function MoodEntriesList({ entries, selectedDate, viewAll }) {
     // ==================
     // MAIN RENDER
     // ==================
+    // If viewAll is true, show all entries
+    // Otherwise, filter entries by selectedDate
     return (
         <View>
             {entries

@@ -19,43 +19,26 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../constants/constants";
 import buttonStyles from "../constants/StyleSheet/buttonStyles";
 import tabStyles from "../constants/StyleSheet/tabStyles";
+import {
+    formatDate,
+    formatTime,
+    formatDateInput,
+    formatTimeInput,
+} from "../constants/utility/dateUtils";
 
-// =================
-// FORMATS DATE+INPUT
-// ================
-const formatDate = (date) =>
-    date
-        ? `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(
-              2,
-              "0"
-          )}/${date.getFullYear()}`
-        : "";
-
-const formatTime = (date) =>
-    date
-        ? `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(
-              2,
-              "0"
-          )}`
-        : "";
-
-const formatDateInput = (text) => {
-    const digits = text.replace(/\D/g, "").slice(0, 8);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-};
-
-const formatTimeInput = (text) => {
-    const digits = text.replace(/\D/g, "").slice(0, 4);
-    if (digits.length <= 2) return digits;
-    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
-};
+//============================
+// CREATE ENTRY SCREEN COMPONENT
+// This screen allows users to create or edit tasks and habits.
+// It includes fields for title, description, due date, reminder, tags, priority, and habit-specific fields.
+// It also handles form validation and submission to the API.
 
 export default function CreateEntryScreen() {
     // ================
     // PARAMETERS & STATE
     // ================
+
+    // Get parameters from the URL
+    // Used for editing existing entries
     const {
         mode,
         id,
@@ -71,8 +54,15 @@ export default function CreateEntryScreen() {
         habitType: initialHabitType,
     } = useLocalSearchParams();
 
+    // Determine if we are editing an existing entry
+    // If mode is "edit", we are editing an existing entry
     const isEditing = mode === "edit";
+
+    // Type of entry (task or habit)
+    // Default to "task" if not editing or no initial type provided
     const [type, setType] = useState(initialType || "task");
+
+    // Title, description, due date, reminder, tags, and priority
     const [title, setTitle] = useState(initialTitle || "");
     const [description, setDescription] = useState(initialDescription || "");
     const [dueDate, setDueDate] = useState(initialDueDate ? new Date(initialDueDate) : new Date());
@@ -110,6 +100,7 @@ export default function CreateEntryScreen() {
     // ================
     // EFFECTS
     // ================
+    // Set initial values for date/time inputs when editing
     useEffect(() => {
         if (reminder) {
             setReminderDateInput(formatDate(reminder));
@@ -117,16 +108,18 @@ export default function CreateEntryScreen() {
         }
     }, [reminder]);
 
+    // Set initial type if editing
+
     useEffect(() => {
         if (mode === "edit" && initialType) {
             setType(initialType);
         }
     }, [mode, initialType]);
 
+    // Update typeTranslate and priorityTranslate when type or priority changes
     useEffect(() => {
         typeTranslate.value = withTiming(type === "task" ? 0 : 1, { duration: 300 });
     }, [type]);
-
     useEffect(() => {
         const index = priority === "Low" ? 0 : priority === "Medium" ? 1 : 2;
         priorityTranslate.value = withTiming(index, { duration: 300 });
@@ -135,11 +128,17 @@ export default function CreateEntryScreen() {
     // ================
     // HELPERS
     // ================
+
+    // Parse date string in DD/MM/YYYY format to Date object
+    // This is used for web input parsing
+    // Returns a Date object or null if parsing fails
     const parseDate = (str) => {
         const [dd, mm, yyyy] = str.split("/").map(Number);
         return new Date(yyyy, mm - 1, dd);
     };
 
+    // Parse time string in HH:mm format to hours and minutes
+    // Returns an object with hh and mm properties
     const parseTime = (str) => {
         const [hh, mm] = str.split(":").map(Number);
         return { hh, mm };
@@ -148,11 +147,20 @@ export default function CreateEntryScreen() {
     // ================
     // ANIMATED STYLES
     // ================
+
+    // Animated styles for the type toggle background
+    // This uses Reanimated to smoothly transition the background position
+    // based on the selected type (task or habit)
+    // The background will slide to the left for "task" and to the right for "habit"
     const typeBgStyle = useAnimatedStyle(() => {
         const translateX = interpolate(typeTranslate.value, [0, 1], [0, tabWidth]);
         return { transform: [{ translateX }] };
     });
 
+    // Animated styles for the priority toggle background
+    // This uses Reanimated to smoothly transition the background position
+    // based on the selected priority (Low, Medium, High)
+    // The background will slide to the left for "Low", to the middle for "Medium
     const priorityBgStyle = useAnimatedStyle(() => {
         const translateX = interpolate(
             priorityTranslate.value,
@@ -169,6 +177,12 @@ export default function CreateEntryScreen() {
     // ================
     // VALIDATION
     // ================
+
+    // Validate form inputs before submission
+    // Checks if title is provided and if habit target is required
+    // Sets error messages in the errors state
+    // Returns true if validation passes, false otherwise
+    // This is used to prevent submission if required fields are empty
     const validate = () => {
         const err = {};
         if (!title.trim()) err.title = "Title is required";
@@ -180,6 +194,9 @@ export default function CreateEntryScreen() {
     // ================
     // SUBMIT HANDLER
     // ================
+    // Handles form submission
+    // Validates inputs, formats dates for web, and sends data to the API
+    // If successful, navigates back to the previous screen
     const handleSubmit = async () => {
         if (!validate()) return;
 

@@ -41,15 +41,14 @@ export default function MoodTrackerScreen() {
     const scrollRef = useRef();
 
     const fetchEntries = useCallback(() => {
-        fetch(`${API_URL}/api/moods`)
+        return fetch(`${API_URL}/api/moods`)
             .then((res) => res.json())
             .then(setEntries)
             .catch((err) => console.error("Error fetching moods:", err));
     }, []);
     const handleRefresh = () => {
         setRefreshing(true);
-        fetchEntries();
-        setRefreshing(false);
+        fetchEntries().finally(() => setRefreshing(false));
     };
 
     const getDates = () => {

@@ -13,6 +13,13 @@ import menuStyles from "@/constants/StyleSheet/menuStyles";
 import { sortTasks, getPriorityStyle } from "@/constants/utility/taskUtils";
 import DefaultEmpty from "./ListEmptyComponent";
 
+// ==================================
+// TASK LIST COMPONENT
+// This component displays a list of tasks
+// It allows sorting, editing, deleting, and marking tasks as done
+// It is used in the HomeSceen, CalendarScreen, and CompletedTasksScreen
+// ==================================
+
 export default function TaskList({
     tasks = [],
     sortMode = "dueDate",

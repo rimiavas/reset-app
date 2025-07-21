@@ -5,20 +5,31 @@ import habitStyles from "../../constants/StyleSheet/habitStyles";
 import menuStyles from "../../constants/StyleSheet/menuStyles";
 import taskCardStyles from "../../constants/StyleSheet/taskCardStyles";
 import { getLoggedValue } from "../../constants/utility/habitUtils";
+import DefaultEmpty from "./ListEmptyComponent";
 
 // ==================================
 // HABIT GRID COMPONENT
 // displays habits in a responsive grid
 // ==================================
 
-export default function HabitGrid({ habits = [], onDelete, onUpdate, onEdit, date = new Date() }) {
+export default function HabitGrid({
+    habits = [],
+    onDelete,
+    onUpdate,
+    onEdit,
+    date = new Date(),
+    ListEmptyComponent,
+}) {
     // ==================
     // SETUP & STATE
     // ==================
     // Track which task has its 3-dot menu open
     const [selectedHabitId, setSelectedHabitId] = useState(null);
-    const numColumns =
-        Dimensions.get("window").width < 600 ? 2 : Dimensions.get("window").width < 900 ? 3 : 4;
+
+    const EmptyComponent = ListEmptyComponent || (() => <DefaultEmpty type="habit" />);
+    const windowWidth = Dimensions.get("window").width;
+    const numColumns = windowWidth < 600 ? 2 : windowWidth < 900 ? 3 : 4;
+
     // helpers for logging date
     const isToday = isSameDay(date, new Date());
     // ==================
@@ -27,87 +38,99 @@ export default function HabitGrid({ habits = [], onDelete, onUpdate, onEdit, dat
     return (
         //Habits grid
         <View style={styles.habitGrid}>
-            {Array.from({ length: Math.ceil(habits.length / numColumns) }).map((_, rowIndex) => (
-                <View key={rowIndex} style={styles.habitRow}>
-                    {habits
-                        .slice(rowIndex * numColumns, rowIndex * numColumns + numColumns)
-                        .map((habit) => {
-                            const loggedValue = getLoggedValue(habit, date);
-                            return (
-                                <View
-                                    key={habit._id}
-                                    style={[styles.habitCard, { position: "relative" }]}>
-                                    <View style={styles.habitHeader}>
-                                        {/* Habit Title */}
-                                        <Text style={styles.habitTitle}>{habit.title}</Text>
-                                        {/* Three-dot Menu Button */}
-                                        <TouchableOpacity
-                                            onPress={() => setSelectedHabitId(habit._id)}>
-                                            <Text style={styles.dots}>⋯</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    {selectedHabitId === habit._id && (
-                                        <>
-                                            <Pressable
-                                                onPress={() => setSelectedHabitId(null)}
-                                                style={StyleSheet.absoluteFillObject}
-                                            />
-                                            <View style={styles.menu}>
-                                                <TouchableOpacity
-                                                    onPress={() => {
-                                                        setSelectedHabitId(null);
-                                                        onEdit && onEdit(habit);
-                                                    }}>
-                                                    <Text style={styles.menuItem}>✏️ Edit</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    onPress={() => {
-                                                        setSelectedHabitId(null);
-                                                        onDelete && onDelete(habit._id);
-                                                    }}>
-                                                    <Text style={styles.menuItem}>🗑️ Delete</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        </>
-                                    )}
-                                    <View style={styles.counterRow}>
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.counterBtn,
-                                                !isToday && { opacity: 0.3 },
-                                            ]}
-                                            onPress={() =>
-                                                isToday && onUpdate && onUpdate(habit._id, -1)
-                                            }
-                                            disabled={!isToday}>
-                                            <Text style={styles.counterText}>−</Text>
-                                        </TouchableOpacity>
-                                        <View>
-                                            <Text style={styles.counterValue}>
-                                                {loggedValue} / {habit.target || 0}
-                                            </Text>
-                                            <Text style={styles.unitText}>{habit.unit}</Text>
+            {/* If no habits, show empty component */}
+            {/* Otherwise, render habits in a grid */}
+            {habits.length === 0 ? (
+                <EmptyComponent />
+            ) : (
+                Array.from({ length: Math.ceil(habits.length / numColumns) }).map((_, rowIndex) => (
+                    <View key={rowIndex} style={styles.habitRow}>
+                        {habits
+                            .slice(rowIndex * numColumns, rowIndex * numColumns + numColumns)
+                            .map((habit) => {
+                                const loggedValue = getLoggedValue(habit, date);
+                                return (
+                                    <View
+                                        key={habit._id}
+                                        style={[styles.habitCard, { position: "relative" }]}>
+                                        <View style={styles.habitHeader}>
+                                            {/* Habit Title */}
+                                            <Text style={styles.habitTitle}>{habit.title}</Text>
+                                            {/* Three-dot Menu Button */}
+                                            <TouchableOpacity
+                                                onPress={() => setSelectedHabitId(habit._id)}>
+                                                <Text style={styles.dots}>⋯</Text>
+                                            </TouchableOpacity>
                                         </View>
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.counterBtn,
-                                                !isToday && { opacity: 0.3 },
-                                            ]}
-                                            onPress={() =>
-                                                isToday && onUpdate && onUpdate(habit._id, 1)
-                                            }
-                                            disabled={!isToday}>
-                                            <Text style={styles.counterText}>＋</Text>
-                                        </TouchableOpacity>
+                                        {selectedHabitId === habit._id && (
+                                            <>
+                                                <Pressable
+                                                    onPress={() => setSelectedHabitId(null)}
+                                                    style={StyleSheet.absoluteFillObject}
+                                                />
+                                                <View style={styles.menu}>
+                                                    <TouchableOpacity
+                                                        onPress={() => {
+                                                            setSelectedHabitId(null);
+                                                            onEdit && onEdit(habit);
+                                                        }}>
+                                                        <Text style={styles.menuItem}>✏️ Edit</Text>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity
+                                                        onPress={() => {
+                                                            setSelectedHabitId(null);
+                                                            onDelete && onDelete(habit._id);
+                                                        }}>
+                                                        <Text style={styles.menuItem}>
+                                                            🗑️ Delete
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </>
+                                        )}
+                                        {/* Habit Counter */}
+                                        {/* Display the logged value and target */}
+                                        <View style={styles.counterRow}>
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.counterBtn,
+                                                    !isToday && { opacity: 0.3 },
+                                                ]}
+                                                onPress={() =>
+                                                    isToday && onUpdate && onUpdate(habit._id, -1)
+                                                }
+                                                disabled={!isToday}>
+                                                <Text style={styles.counterText}>−</Text>
+                                            </TouchableOpacity>
+                                            <View>
+                                                <Text style={styles.counterValue}>
+                                                    {loggedValue} / {habit.target || 0}
+                                                </Text>
+                                                <Text style={styles.unitText}>{habit.unit}</Text>
+                                            </View>
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.counterBtn,
+                                                    !isToday && { opacity: 0.3 },
+                                                ]}
+                                                onPress={() =>
+                                                    isToday && onUpdate && onUpdate(habit._id, 1)
+                                                }
+                                                disabled={!isToday}>
+                                                <Text style={styles.counterText}>＋</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        <View style={styles.habitTagContainer}>
+                                            <Text style={styles.habitTag}>
+                                                {habit.type || "habit"}
+                                            </Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.habitTagContainer}>
-                                        <Text style={styles.habitTag}>{habit.type || "habit"}</Text>
-                                    </View>
-                                </View>
-                            );
-                        })}
-                </View>
-            ))}
+                                );
+                            })}
+                    </View>
+                ))
+            )}
         </View>
     );
 }
