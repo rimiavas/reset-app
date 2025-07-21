@@ -41,6 +41,7 @@ export default function TaskList({
         <View style={{ flex: 1 }}>
             {selectedTaskId && (
                 <Pressable
+                    pointerEvents="box-none"
                     style={[StyleSheet.absoluteFillObject, { zIndex: 10 }]}
                     onPress={() => setSelectedTaskId(null)}
                 />
@@ -50,7 +51,11 @@ export default function TaskList({
                 data={sortTasks(tasks, sortMode)}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
-                    <View style={{ position: "relative" }}>
+                    <View
+                        style={{
+                            position: "relative",
+                            zIndex: selectedTaskId === item._id ? 30 : undefined,
+                        }}>
                         {/* Task Card */}
                         <View style={styles.taskCard}>
                             <View style={styles.taskHeader}>
@@ -71,6 +76,7 @@ export default function TaskList({
 
                                 {/* Three-dot Menu Button */}
                                 <TouchableOpacity
+                                    style={styles.menuButton}
                                     onPress={() => setSelectedTaskId(item._id)}
                                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                                     <Text style={styles.dots}>⋯</Text>
@@ -78,7 +84,7 @@ export default function TaskList({
                             </View>
                             {/* Dropdown Menu (Mark Done, Edit, Delete) */}
                             {selectedTaskId === item._id && (
-                                <View style={styles.menu}>
+                                <View style={[styles.menu, styles.taskMenu]}>
                                     {onMarkDone && (
                                         <TouchableOpacity onPress={() => onMarkDone(item._id)}>
                                             <Text style={styles.menuItem}>{markDoneLabel}</Text>

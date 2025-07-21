@@ -18,6 +18,10 @@ const menuStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
+    menuButton: {
+        position: "absolute",
+        right: 5,
+    },
     menuItem: {
         fontFamily: "Inter",
         fontSize: 12,

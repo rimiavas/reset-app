@@ -8,6 +8,7 @@ import {
     RefreshControl,
     TextInput,
     Pressable,
+    Dimensions,
     Platform,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,7 +20,6 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import calendarStyles from "../constants/StyleSheet/calendarStyles";
-const DATE_ITEM_WIDTH = StyleSheet.flatten(calendarStyles.dateButton).width;
 import { useFocusEffect } from "expo-router";
 import { format, addDays, isSameDay } from "date-fns";
 import { API_URL } from "../constants/constants";
@@ -42,6 +42,14 @@ export default function MoodTrackerScreen() {
     const scrollRef = useRef();
     // Safe area insets for handling device notches and safe areas
     const insets = useSafeAreaInsets();
+
+    const dateButtonStyle = StyleSheet.flatten(calendarStyles.dateButton);
+    const activeDateStyle = StyleSheet.flatten(calendarStyles.activeDate);
+    const DATE_ITEM_WIDTH = (dateButtonStyle.width || 0) + (dateButtonStyle.marginRight || 0);
+    const ACTIVE_DATE_ITEM_WIDTH =
+        (activeDateStyle.width || dateButtonStyle.width || 0) + (dateButtonStyle.marginRight || 0);
+    const DATE_ROW_PADDING =
+        StyleSheet.flatten(calendarStyles.dateRowContent)?.paddingHorizontal || 0;
 
     const fetchEntries = useCallback(() => {
         return fetch(`${API_URL}/api/moods`)
@@ -68,9 +76,14 @@ export default function MoodTrackerScreen() {
         const timer = setTimeout(() => {
             if (scrollRef.current && getDates().length) {
                 const todayIndex = getDates().findIndex((d) => isSameDay(d, new Date()));
-                if (todayIndex > 0) {
+                if (todayIndex > -1) {
+                    const screenWidth = Dimensions.get("window").width;
+                    const offset =
+                        DATE_ROW_PADDING +
+                        todayIndex * DATE_ITEM_WIDTH -
+                        (screenWidth / 2 - ACTIVE_DATE_ITEM_WIDTH / 2);
                     scrollRef.current.scrollTo({
-                        x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
+                        x: Math.max(0, offset),
                         animated: false,
                     });
                 }
@@ -136,8 +149,13 @@ export default function MoodTrackerScreen() {
         setSelectedDate(today);
         const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
         if (scrollRef.current && todayIndex > -1) {
+            const screenWidth = Dimensions.get("window").width;
+            const offset =
+                DATE_ROW_PADDING +
+                todayIndex * DATE_ITEM_WIDTH -
+                (screenWidth / 2 - ACTIVE_DATE_ITEM_WIDTH / 2);
             scrollRef.current.scrollTo({
-                x: Math.max(0, (todayIndex - 4) * DATE_ITEM_WIDTH),
+                x: Math.max(0, offset),
                 animated: true,
             });
         }

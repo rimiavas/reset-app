@@ -17,6 +17,9 @@ const taskCardStyles = StyleSheet.create({
         flexShrink: 1,
         position: "relative",
     },
+    taskMenu: {
+        top: 15,
+    },
     taskHeader: {
         flexDirection: "row",
         justifyContent: "space-between",

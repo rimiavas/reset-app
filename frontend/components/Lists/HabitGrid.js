@@ -39,6 +39,7 @@ export default function HabitGrid({
         <View style={styles.habitGrid}>
             {selectedHabitId && (
                 <Pressable
+                    pointerEvents="box-none"
                     style={[StyleSheet.absoluteFillObject, { zIndex: 10 }]}
                     onPress={() => setSelectedHabitId(null)}
                 />

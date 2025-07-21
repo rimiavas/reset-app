@@ -49,7 +49,13 @@ export default function CalendarScreen() {
     const insets = useSafeAreaInsets();
 
     const [tabWidth, setTabWidth] = useState(0);
-    const [dateItemWidth, setDateItemWidth] = useState(0);
+    const dateButtonStyle = StyleSheet.flatten(calendarStyles.dateButton);
+    const activeDateStyle = StyleSheet.flatten(calendarStyles.activeDate);
+    const DATE_ITEM_WIDTH = (dateButtonStyle.width || 0) + (dateButtonStyle.marginRight || 0);
+    const ACTIVE_DATE_ITEM_WIDTH =
+        (activeDateStyle.width || dateButtonStyle.width || 0) + (dateButtonStyle.marginRight || 0);
+    const DATE_ROW_PADDING =
+        StyleSheet.flatten(calendarStyles.dateRowContent)?.paddingHorizontal || 0;
     const tabTranslate = useSharedValue(0);
 
     // ================
@@ -87,12 +93,14 @@ export default function CalendarScreen() {
     // Auto-scroll to today on mount
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (scrollRef.current && getDates().length && dateItemWidth) {
+            if (scrollRef.current && getDates().length) {
                 const todayIndex = getDates().findIndex((date) => isSameDay(date, new Date()));
                 if (todayIndex > -1) {
                     const screenWidth = Dimensions.get("window").width;
                     const offset =
-                        todayIndex * dateItemWidth - (screenWidth / 2 - dateItemWidth / 2);
+                        DATE_ROW_PADDING +
+                        todayIndex * DATE_ITEM_WIDTH -
+                        (screenWidth / 2 - ACTIVE_DATE_ITEM_WIDTH / 2);
                     scrollRef.current.scrollTo({
                         x: Math.max(0, offset),
                         animated: false,
@@ -101,7 +109,7 @@ export default function CalendarScreen() {
             }
         }, 0);
         return () => clearTimeout(timer);
-    }, [dateItemWidth]);
+    }, []);
 
     // Function to scroll to today's date
     // This function sets the selected date to today and scrolls to it
@@ -110,9 +118,12 @@ export default function CalendarScreen() {
         const today = new Date();
         setSelectedDate(today);
         const todayIndex = getDates().findIndex((date) => isSameDay(date, today));
-        if (scrollRef.current && todayIndex > -1 && dateItemWidth) {
+        if (scrollRef.current && todayIndex > -1) {
             const screenWidth = Dimensions.get("window").width;
-            const offset = todayIndex * dateItemWidth - (screenWidth / 2 - dateItemWidth / 2);
+            const offset =
+                DATE_ROW_PADDING +
+                todayIndex * DATE_ITEM_WIDTH -
+                (screenWidth / 2 - ACTIVE_DATE_ITEM_WIDTH / 2);
             scrollRef.current.scrollTo({
                 x: Math.max(0, offset),
                 animated: true,
@@ -201,12 +212,7 @@ export default function CalendarScreen() {
                                 <TouchableOpacity
                                     key={date.toISOString()}
                                     style={[styles.dateButton, active && styles.activeDate]}
-                                    onPress={() => setSelectedDate(date)}
-                                    onLayout={(e) => {
-                                        if (!dateItemWidth) {
-                                            setDateItemWidth(e.nativeEvent.layout.width);
-                                        }
-                                    }}>
+                                    onPress={() => setSelectedDate(date)}>
                                     <Text style={[styles.dayText, active && styles.activeDateText]}>
                                         {format(date, "EEE")}
                                     </Text>
