@@ -2,4 +2,6 @@
 import { Platform } from "react-native";
 
 export const API_URL =
-    Platform.OS === "web" ? "http://localhost:3000" : "https://b0dbe72914de.ngrok-free.app";
+    Platform.OS === "web"
+        ? "http://www.doc.gold.ac.uk/usr/215"
+        : "http://www.doc.gold.ac.uk/usr/215";
