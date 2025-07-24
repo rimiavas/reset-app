@@ -21,10 +21,7 @@
         "web": {
             "bundler": "metro",
             "output": "static",
-            "favicon": "./assets/images/Reset.png",
-            "config": {
-                "path": "/~rvas001"
-            }
+            "favicon": "./assets/images/Reset.png"
         },
         "plugins": [
             "expo-router",
